@@ -19,8 +19,8 @@ export const metadata: Metadata = {
 	],
 	icons: {
 		icon: "/logo.svg",
-		shortcut: "/favicon-16x16.png",
-		apple: "/apple-touch-icon.png",
+		shortcut: "/logo.svg",
+		apple: "/logo.svg",
 	},
 };
 
@@ -46,13 +46,12 @@ export default function RootLayout({
 						</main>
 						<footer className="w-full flex items-center justify-center py-3">
 							<Link
-								isExternal
 								className="flex items-center gap-1 text-current"
-								href="https://nextui-docs-v2.vercel.app?utm_source=next-app-template"
-								title="nextui.org homepage"
+								href="/about"
+								title="About Us"
 							>
-								<span className="text-default-600">Powered by</span>
-								<p className="text-primary">NextUI</p>
+								<span className="text-default-600">Made by</span>
+								<p className="text-primary">EWF</p>
 							</Link>
 						</footer>
 					</div>
