@@ -6,6 +6,8 @@ import { Providers } from "./providers";
 import { Navbar } from "@/components/navbar";
 import { Link } from "@nextui-org/link";
 import clsx from "clsx";
+import ParticlesComponent from "@/components/particles";
+import { Particles } from "tsparticles-engine";
 
 export const metadata: Metadata = {
 	title: {
@@ -38,10 +40,11 @@ export default function RootLayout({
 					fontSans.variable
 				)}
 			>
+				<ParticlesComponent id="particles"/>
 				<Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
 					<div className="relative flex flex-col h-screen">
 						<Navbar />
-						<main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">
+						<main className="container mx-auto max-w-7xl pt-6 px-6 flex-grow">
 							{children}
 						</main>
 						<footer className="w-full flex items-center justify-center py-3">
@@ -60,3 +63,4 @@ export default function RootLayout({
 		</html>
 	);
 }
+
