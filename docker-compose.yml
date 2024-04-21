@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  api-service:
+    build:
+      dockerfile: Dockerfile
+      context: ./src/be
+      target: prod
+    container_name: api-service
+    hostname: api-service
+    restart: on-failure
+    ports:
+      - "7780:3000"
+    networks:
+      stima-network:
+        aliases:
+          - api.local
+  # fe-service:
+  #   build:
+  #     dockerfile: Dockerfile
+  #     context: ./src/fe
+  #     target: prod
+  #   container_name: fe-service
+  #   hostname: fe-service
+  #   restart: on-failure
+  #   ports:
+  #     - "7781:3000"
+  #   networks:
+  #     stima-network:
+  #       aliases:
+  #         - fe.local
+
+networks:
+  stima-network:
