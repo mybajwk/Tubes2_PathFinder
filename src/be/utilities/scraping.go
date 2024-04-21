@@ -47,6 +47,7 @@ func ScrapeWikipedia(parent string, url string, c *colly.Collector, end string) 
 			if !isExcluded(link) {
 				if fullLink == end && !found {
 					// println(url, "", fullLink)
+					foundURLs = append(foundURLs, schema.Data{Url: fullLink, Parent: parent + " " + fullLink})
 					found = true
 					return
 				}
