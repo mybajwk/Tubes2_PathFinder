@@ -112,7 +112,3 @@ func BfsScrapping(context *gin.Context) {
 
 	context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": result})
 }
-
-func IdsScrapping(context *gin.Context) {
-
-}

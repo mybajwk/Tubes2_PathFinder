@@ -10,6 +10,7 @@ import (
 var Collectors [200]*colly.Collector
 var CollectorPool chan *colly.Collector
 var Data sync.Map
+var DataString sync.Map
 
 func InitColly(n int) {
 	CollectorPool = make(chan *colly.Collector, n) // Initialize the pool with the capacity of n
