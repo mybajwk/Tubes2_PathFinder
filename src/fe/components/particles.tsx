@@ -1,15 +1,14 @@
-"use client"
+"use client";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { useEffect, useMemo, useState } from "react";
 import { loadFull } from "tsparticles";
-import { Container, MoveDirection } from "tsparticles-engine";
+import { Container, MoveDirection, OutMode } from "tsparticles-engine";
 
 type ParticlesComponentProps = {
-    id: string;
-  };
+  id: string;
+};
 
 const ParticlesComponent = (props: ParticlesComponentProps) => {
-
   const [init, setInit] = useState(false);
   useEffect(() => {
     initParticlesEngine(async (engine) => {
@@ -19,10 +18,9 @@ const ParticlesComponent = (props: ParticlesComponentProps) => {
     });
   }, []);
 
-  const particlesLoaded = (container:Container) => {
+  const particlesLoaded = (container: Container) => {
     console.log(container);
   };
-
 
   const options = useMemo(
     () => ({
@@ -40,7 +38,7 @@ const ParticlesComponent = (props: ParticlesComponentProps) => {
           },
           onHover: {
             enable: true,
-            mode: 'grab',
+            mode: "grab",
           },
         },
         modes: {
@@ -67,9 +65,7 @@ const ParticlesComponent = (props: ParticlesComponentProps) => {
         move: {
           direction: "none" as MoveDirection,
           enable: true,
-          outModes: {
-            default: "bounce",
-          },
+          outModes: "bounce" as any,
           random: true,
           speed: 1,
           straight: false,
@@ -92,11 +88,10 @@ const ParticlesComponent = (props: ParticlesComponentProps) => {
       },
       detectRetina: true,
     }),
-    [],
+    []
   );
 
-
-  return <Particles id={props.id} init={particlesLoaded} options={options} />; 
+  return <Particles id={props.id} options={options} />;
 };
 
 export default ParticlesComponent;

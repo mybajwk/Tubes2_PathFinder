@@ -15,20 +15,20 @@ services:
       stima-network:
         aliases:
           - api.local
-  # fe-service:
-  #   build:
-  #     dockerfile: Dockerfile
-  #     context: ./src/fe
-  #     target: prod
-  #   container_name: fe-service
-  #   hostname: fe-service
-  #   restart: on-failure
-  #   ports:
-  #     - "7781:3000"
-  #   networks:
-  #     stima-network:
-  #       aliases:
-  #         - fe.local
+  fe-service:
+    build:
+      dockerfile: Dockerfile
+      context: ./src/fe
+      target: prod
+    container_name: fe-service
+    hostname: fe-service
+    restart: on-failure
+    ports:
+      - "7781:3000"
+    networks:
+      stima-network:
+        aliases:
+          - fe.local
 
 networks:
   stima-network:
