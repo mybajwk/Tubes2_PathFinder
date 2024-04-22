@@ -53,9 +53,10 @@ func BfsScrapping(context *gin.Context) {
 		newUrls := []schema.Data{}
 		println("ini", len(urls))
 		for i, url := range urls {
-			// if found {
-			// 	break
-			// }
+			if found  && !request.IsMulti{
+				context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": result})
+				return
+			}
 			if check[url.Url] {
 				continue
 			}
