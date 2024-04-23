@@ -1,12 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Input } from "@nextui-org/react";
-import { SearchIcon } from "./icons"; 
+import { SearchIcon } from "./icons";
 import debounce from "lodash.debounce";
 import { useTheme } from "next-themes";
 
 interface Option {
     label: string;
-    value: any;
+    value: string;
 }
 
 interface InputSearchProps {
@@ -19,8 +19,7 @@ const InputSearch: React.FC<InputSearchProps> = ({ key, value, onChange }) => {
     const [filteredOptions, setFilteredOptions] = useState<Option[]>([]);
     const [showRecommendations, setShowRecommendations] = useState(false);
     const [isOptionSelected, setIsOptionSelected] = useState(false);
-    const lowercaseValue = value.toLowerCase();
-    const { theme } = useTheme()
+    const { theme } = useTheme();
 
     const fetchSuggestions = useCallback(async (searchValue: string) => {
         if (!searchValue.trim()) {
@@ -33,13 +32,15 @@ const InputSearch: React.FC<InputSearchProps> = ({ key, value, onChange }) => {
         try {
             const response = await fetch(url);
             const data = await response.json();
-            const suggestions: Option[] = data[1].slice(0, 5).map((item: string, index: number) => ({
+            const suggestions: Option[] = data[1].map((item: string, index: number) => ({
                 label: item,
                 value: data[3][index],
             }));
             
-            setFilteredOptions(suggestions);
-            setShowRecommendations(true);
+            if (!isOptionSelected) {
+                setFilteredOptions(suggestions);
+                setShowRecommendations(true);
+            }
         } catch (error) {
             console.error("Failed to fetch suggestions:", error);
             setFilteredOptions([]);
@@ -51,16 +52,15 @@ const InputSearch: React.FC<InputSearchProps> = ({ key, value, onChange }) => {
 
     useEffect(() => {
         if (!isOptionSelected) {
-            const newValueLowercase = value.toLowerCase();
-            debounceFetchSuggestions(newValueLowercase);
+            debounceFetchSuggestions(value.toLowerCase());
         }
-    }, [value, debounceFetchSuggestions]);
+    }, [value, debounceFetchSuggestions, ]);
 
     const handleOptionSelect = (selectedLabel: string) => {
+        setIsOptionSelected(true);
         const event = {
             target: { value: selectedLabel },
         } as React.ChangeEvent<HTMLInputElement>;
-
         onChange(event);
         setShowRecommendations(false);
         setIsOptionSelected(true);
@@ -72,11 +72,11 @@ const InputSearch: React.FC<InputSearchProps> = ({ key, value, onChange }) => {
         }
     }, [value]);
 
-    const suggestionBoxClasses = `absolute w-[500px] mt-[90px] max-h-60 overflow-auto z-10 rounded-2xl ${
+    const suggestionBoxClasses = `absolute w-[500px] mt-[90px] max-h-[200px] overflow-y-auto z-10 rounded-2xl ${
         theme === 'dark' ? "bg-neutral-800 text-white" : "bg-neutral-100 text-gray-900"
     }`;
 
-    const optionClasses = index => `p-2 cursor-pointer ${
+    const optionClasses = (index: number) => `p-2 cursor-pointer ${
         theme === 'dark' ? "hover:bg-black" : "hover:bg-zinc-300"
     } ${
         index === 0 ? "first:rounded-t-2xl" : ""
