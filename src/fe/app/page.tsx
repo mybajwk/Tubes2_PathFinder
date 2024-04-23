@@ -10,7 +10,7 @@ export default function Home() {
 		<section className="flex flex-col items-center justify-center gap-4 py-3 md:py-10">
 			<div className="inline-block max-w-lg text-center justify-center">
 				<h1 className={title()}>Welcome&nbsp;to </h1>
-				<h1 className={title({ color: "violet" })}>Path&nbsp;Finder</h1>
+				<h1 className={title({ color: "green" })}>Path&nbsp;Finder</h1>
 				<br />
 				<h1 className={title()}>
 					where knowledge exploration becomes an unforgettable adventure.

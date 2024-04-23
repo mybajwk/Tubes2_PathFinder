@@ -7,6 +7,7 @@ import { Switch, Tab, Tabs } from "@nextui-org/react";
 import LoadingButton from '@/components/button';
 import SwitchFilled from '@/components/switch';
 import { useTheme } from 'next-themes';
+import ForceGraph from '@/components/Graph';
 
 export default function DocsPage() {
     const [fromValue, setFromValue] = useState('');
@@ -42,6 +43,22 @@ export default function DocsPage() {
         }, 2000);
     };
 
+    const nodes = [
+        { id: 'node1' },
+        { id: 'node2' },
+        { id: 'node3' },
+        { id: 'node5' },
+        { id: 'node4' },
+      ];
+    
+      const links = [
+        { source: 'node1', target: 'node2' },
+        { source: 'node2', target: 'node3' },
+        { source: 'node2', target: 'node5' },
+        { source: 'node5', target: 'node4'},
+        { source: 'node3', target: 'node4'},
+      ];
+
     return (
         <div>
             <h1 className={title()}>App</h1>
@@ -72,7 +89,9 @@ export default function DocsPage() {
             <div className="flex justify-center mt-8" >
             <LoadingButton/>
             </div>
-            
+            <div className='flex items-center bg-zinc-800 bg-opacity-90 p-4 rounded-3xl'>
+                <ForceGraph nodes={nodes} links={links} />
+            </div>
         </div>
     );
 }
