@@ -18,6 +18,7 @@ export default function SwitchFilled() {
   }, [theme]); // Dependency array includes theme to re-compute on change
 
   return (
+    <div className="flex justify-center items-center">
     <Switch
       defaultSelected
       size="lg"
@@ -41,5 +42,6 @@ export default function SwitchFilled() {
       }}
     >
     </Switch>
+    </div>
   );
 }

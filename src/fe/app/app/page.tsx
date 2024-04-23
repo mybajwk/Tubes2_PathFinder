@@ -66,9 +66,13 @@ export default function DocsPage() {
                     <Tab key="texture" title="IDS" />
                 </Tabs>
             </div>
-            <SwitchFilled />
-            {/* Optionally display the LoadingButton */}
-            {/* {isLoading && <LoadingButton />} */}
+            <div className="flex justify-center items-center">
+            <SwitchFilled  />
+            </div>
+            <div className="flex justify-center mt-8" >
+            <LoadingButton/>
+            </div>
+            
         </div>
     );
 }

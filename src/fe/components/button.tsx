@@ -1,28 +1,32 @@
-// components/LoadingButton.js
 import React, { useState } from 'react';
+import { Button } from '@nextui-org/react'; // Import Button from Next UI
 
-const LoadingButton = ({ }) => {
+const LoadingButton = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleClick = async () => {
     setIsLoading(true);
     try {
-      // Gantilah fungsi di bawah ini dengan fungsi sesungguhnya yang ingin Anda jalankan.
-    //   await doSomething();
+      // Replace this placeholder with the actual function you want to run.
+      // await doSomething();
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(true); // Ensure loading state is reset after the operation
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center">
       {!isLoading && (
-        <button
+        <Button
           onClick={handleClick}
-          className="mb-4 px-4 py-2 text-white font-semibold bg-blue-600 rounded hover:bg-blue-700"
+          color="default"
+          variant="ghost"
+          size="lg"
         >
-          Go
-        </button>
+          GO
+        </Button>
       )}
 
       {isLoading && (
