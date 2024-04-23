@@ -36,7 +36,7 @@ func dfs(nodeVisited *map[string]bool, childVisited *map[string]bool, nearbyNode
 				if target == node {
 					println("lohe")
 					(*nodeVisited)[node] = true
-
+					return
 				} else if !(*nodeVisited)[node] {
 					dfs(nodeVisited, childVisited, nearbyNode, parent, node, target, currentDepth-1)
 				}
@@ -53,7 +53,7 @@ func ids(nearbyNode *map[string][]string, source string, target string, currentD
 	nodeVisited := make(map[string]bool)
 	childVisited := make(map[string]bool)
 	parent := make(map[string][]string) //menunjukkan nilai parent
-	// nodeVisited[source] = true
+	nodeVisited[source] = true
 	dfs(&nodeVisited, &childVisited, nearbyNode, &parent, source, target, currentDepth)
 	if !(nodeVisited)[target] && currentDepth < 5 {
 		// fmt.Println("Nearby Node: ", nearbyNode)
