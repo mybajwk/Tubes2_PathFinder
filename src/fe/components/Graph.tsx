@@ -26,11 +26,10 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const width = 640;
-    const height = 400;
+    const width = 800;
+    const height = 500;
     svg.attr('width', width).attr('height', height)
        .attr('viewBox', [-width / 2, -height / 2, width, height]);
-
     const g = svg.append('g');
 
     // Enable zoom and pan

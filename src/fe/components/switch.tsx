@@ -11,7 +11,7 @@ export default function SwitchFilled() {
   useEffect(() => {
     // Compute class names based on the theme
     const classes = cn(
-      "w-[80px] h-[40px]",
+      "w-[80px] h-[40px] mr-0",
       theme === 'dark' ? "group-data-[selected=true]:bg-neutral-700 bg-neutral-700" : "group-data-[selected=true]:bg-neutral-200 bg-neutral-200"
     );
     setWrapperClassNames(classes);
@@ -33,7 +33,7 @@ export default function SwitchFilled() {
       classNames={{
         wrapper: wrapperClassNames,
         thumb: cn(
-          "w-6 h-6 border-2 shadow-lg",
+          "w-6 h-6 border-2 shadow-lg mr-0",
           "group-data-[hover=true]:border-primary",
           "group-data-[selected=true]:ml-12",
           "group-data-[pressed=true]:w-7",

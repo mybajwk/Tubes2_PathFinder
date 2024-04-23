@@ -7,7 +7,7 @@ import { Switch, Tab, Tabs } from "@nextui-org/react";
 import LoadingButton from '@/components/button';
 import SwitchFilled from '@/components/switch';
 import { useTheme } from 'next-themes';
-import ForceGraph from '@/components/Graph';
+import ForceGraph from '@/components/graph';
 
 export default function DocsPage() {
     const [fromValue, setFromValue] = useState('');
@@ -60,7 +60,7 @@ export default function DocsPage() {
       ];
 
     return (
-        <div>
+        <div className='flex justify-center flex-col items-center'>
             <h1 className={title()}>App</h1>
             <div className="flex gap-10 mt-10 justify-center items-start">
                 <InputSearch key="from" value={fromValue} onChange={(e) => setFromValue(e.target.value)} />
@@ -70,7 +70,7 @@ export default function DocsPage() {
                 <InputSearch key="to" value={toValue} onChange={(e) => setToValue(e.target.value)} />
             </div>
 
-            <div className="flex gap-5 py-10">
+           <div className="flex gap-5 py-10 w-[400px]">
                 <Tabs
                     size="lg"
                     aria-label="Options"
@@ -89,8 +89,8 @@ export default function DocsPage() {
             <div className="flex justify-center mt-8" >
             <LoadingButton/>
             </div>
-            <div className='flex items-center bg-zinc-800 bg-opacity-90 p-4 rounded-3xl'>
-                <ForceGraph nodes={nodes} links={links} />
+            <div className="flex justify-center items-center bg-zinc-800 bg-opacity-90 rounded-3xl mt-8 w-[800px]">
+            <ForceGraph nodes={nodes} links={links} />
             </div>
         </div>
     );
