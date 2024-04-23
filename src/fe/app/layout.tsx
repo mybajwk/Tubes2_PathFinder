@@ -40,8 +40,8 @@ export default function RootLayout({
 					fontSans.variable
 				)}
 			>
-				<ParticlesComponent id="particles"/>
 				<Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+					<ParticlesComponent id="particles"/>
 					<div className="relative flex flex-col h-screen">
 						<Navbar />
 						<main className="container mx-auto max-w-7xl pt-6 px-6 flex-grow">
