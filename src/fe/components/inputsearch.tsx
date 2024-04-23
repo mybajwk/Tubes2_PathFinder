@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Input } from "@nextui-org/react";
 import { SearchIcon } from "./icons"; 
 import debounce from "lodash.debounce";
+import { useTheme } from "next-themes";
 
 interface Option {
     label: string;
@@ -19,6 +20,7 @@ const InputSearch: React.FC<InputSearchProps> = ({ key, value, onChange }) => {
     const [showRecommendations, setShowRecommendations] = useState(false);
     const [isOptionSelected, setIsOptionSelected] = useState(false);
     const lowercaseValue = value.toLowerCase();
+    const { theme } = useTheme()
 
     const fetchSuggestions = useCallback(async (searchValue: string) => {
         if (!searchValue.trim()) {
@@ -70,6 +72,18 @@ const InputSearch: React.FC<InputSearchProps> = ({ key, value, onChange }) => {
         }
     }, [value]);
 
+    const suggestionBoxClasses = `absolute w-[500px] mt-[90px] max-h-60 overflow-auto z-10 rounded-2xl ${
+        theme === 'dark' ? "bg-neutral-800 text-white" : "bg-neutral-100 text-gray-900"
+    }`;
+
+    const optionClasses = index => `p-2 cursor-pointer ${
+        theme === 'dark' ? "hover:bg-black" : "hover:bg-zinc-300"
+    } ${
+        index === 0 ? "first:rounded-t-2xl" : ""
+    } ${
+        index === filteredOptions.length - 1 ? "last:rounded-b-2xl" : ""
+    }`;
+
     return (
         <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
@@ -90,11 +104,11 @@ const InputSearch: React.FC<InputSearchProps> = ({ key, value, onChange }) => {
                     />
                 </div>
                 {showRecommendations && filteredOptions.length > 0 && (
-                    <div className="absolute w-[500px] mt-24 bg-[#242323] text-white shadow-md max-h-60 overflow-auto z-10">
-                        {filteredOptions.map((option) => (
+                    <div className={suggestionBoxClasses}>
+                        {filteredOptions.map((option, index) => (
                             <div 
                                 key={option.value} 
-                                className="p-2 hover:bg-black cursor-pointer"
+                                className={optionClasses(index)}
                                 onClick={() => handleOptionSelect(option.label)}
                             >
                                 {option.label}
