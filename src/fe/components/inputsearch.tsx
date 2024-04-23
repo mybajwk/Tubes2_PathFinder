@@ -11,15 +11,20 @@ interface Option {
 
 interface InputSearchProps {
     key: string;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    displayValue: string;
+    actualValue: string;
+    onChange: (actualValue: string, displayValue: string) => void;
+    showRecommendations: boolean;
+    setShowRecommendations: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const InputSearch: React.FC<InputSearchProps> = ({ key, value, onChange }) => {
+const InputSearch: React.FC<InputSearchProps> = ({
+    key, displayValue, actualValue, onChange, showRecommendations, setShowRecommendations
+}) => {
     const [filteredOptions, setFilteredOptions] = useState<Option[]>([]);
-    const [showRecommendations, setShowRecommendations] = useState(false);
     const [isOptionSelected, setIsOptionSelected] = useState(false);
     const { theme } = useTheme();
+    const [inputFocused, setInputFocused] = useState(false);
 
     const fetchSuggestions = useCallback(async (searchValue: string) => {
         if (!searchValue.trim()) {
@@ -32,11 +37,11 @@ const InputSearch: React.FC<InputSearchProps> = ({ key, value, onChange }) => {
         try {
             const response = await fetch(url);
             const data = await response.json();
-            const suggestions: Option[] = data[1].map((item: string, index: number) => ({
+            const suggestions = data[1].map((item: string, index: number) => ({
                 label: item,
                 value: data[3][index],
             }));
-            
+
             if (!isOptionSelected) {
                 setFilteredOptions(suggestions);
                 setShowRecommendations(true);
@@ -46,31 +51,45 @@ const InputSearch: React.FC<InputSearchProps> = ({ key, value, onChange }) => {
             setFilteredOptions([]);
             setShowRecommendations(false);
         }
-    }, []);
+    }, [isOptionSelected]);
 
     const debounceFetchSuggestions = useCallback(debounce(fetchSuggestions, 300), [fetchSuggestions]);
 
     useEffect(() => {
         if (!isOptionSelected) {
-            debounceFetchSuggestions(value.toLowerCase());
+            debounceFetchSuggestions(displayValue.toLowerCase());
         }
-    }, [value, debounceFetchSuggestions, ]);
+    }, [displayValue, debounceFetchSuggestions, isOptionSelected]);
 
-    const handleOptionSelect = (selectedLabel: string) => {
-        setIsOptionSelected(true);
-        const event = {
-            target: { value: selectedLabel },
-        } as React.ChangeEvent<HTMLInputElement>;
-        onChange(event);
-        setShowRecommendations(false);
-        setIsOptionSelected(true);
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange(actualValue, e.target.value); // Update display value while keeping actual value the same
+    };
+    
+    const handleFocus = () => {
+        setInputFocused(true);
+        if (filteredOptions.length > 0) {
+            setShowRecommendations(true);
+        }
+    };
+    
+    const handleBlur = () => {
+        // Delay hiding recommendations to allow time for option selection
+        setTimeout(() => {
+            setShowRecommendations(false);
+            setInputFocused(false);
+        }, 100);
     };
 
-    useEffect(() => {
-        if (isOptionSelected) {
-            setIsOptionSelected(false);
-        }
-    }, [value]);
+    const handleOptionSelect = (option: Option) => {
+        setIsOptionSelected(true); // Indicate an option has been selected
+        onChange(option.value, option.label); // Update both actual and display values
+    
+        setTimeout(() => {
+            setShowRecommendations(false);
+            setIsOptionSelected(false); // Reset selection flag
+            setInputFocused(false); // Remove focus from input after selection
+        }, 100);
+    };
 
     const suggestionBoxClasses = `absolute w-[500px] mt-[90px] max-h-[200px] overflow-y-auto z-10 rounded-2xl ${
         theme === 'dark' ? "bg-neutral-800 text-white" : "bg-neutral-100 text-gray-900"
@@ -91,25 +110,26 @@ const InputSearch: React.FC<InputSearchProps> = ({ key, value, onChange }) => {
                     <Input
                         autoComplete="off"
                         size="lg"
-                        key={key}
-                        value={value}
-                        onChange={onChange}
+                        value={displayValue}
+                        onChange={handleInputChange}
+                        onFocus={handleFocus}
+                        onBlur={handleBlur}
                         type="text"
                         label="Search"
                         labelPlacement="outside"
                         endContent={<SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />}
                         classNames={{
-                            inputWrapper : "w-[500px] h-[60px]",
+                            inputWrapper: "w-[500px] h-[60px]",
                         }}
                     />
                 </div>
-                {showRecommendations && filteredOptions.length > 0 && (
+                {showRecommendations && inputFocused && !isOptionSelected && filteredOptions.length > 0 && (
                     <div className={suggestionBoxClasses}>
                         {filteredOptions.map((option, index) => (
-                            <div 
-                                key={option.value} 
+                            <div
+                                key={option.value}
                                 className={optionClasses(index)}
-                                onClick={() => handleOptionSelect(option.label)}
+                                onClick={() => handleOptionSelect(option)}
                             >
                                 {option.label}
                             </div>
