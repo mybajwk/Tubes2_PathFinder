@@ -4,74 +4,138 @@ import (
 	"be-pathfinder/schema"
 	"be-pathfinder/service"
 	"be-pathfinder/utilities"
-	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/rs/zerolog/log"
 )
 
-var (
-	total         int
-	total_compare int
-	res           string
-)
+type Graph struct {
+	graph map[string][]string
+	mu    sync.RWMutex
+}
 
-func dfs(nodeVisited *map[string]bool, childVisited *map[string]bool, nearbyNode *map[string][]string, parent *map[string][]string, source string, target string, currentDepth int) {
-	if currentDepth > 0 {
-		(*nodeVisited)[source] = true
-		_, ok := (*nearbyNode)[source]
-		if !ok {
-			total++
-			total_compare++
-			utilities.OptimizeScrapeWikipedia(source, service.Collectors[0], nearbyNode)
-			total_compare += len((*nearbyNode)[source])
+var found bool
+var countCompare int
+var count int
+var isMulti bool
+
+func NewGraph() *Graph {
+	return &Graph{
+		graph: make(map[string][]string),
+	}
+}
+
+func (g *Graph) AddEdge(u, v string) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if _, ok := g.graph[u]; !ok {
+		g.graph[u] = make([]string, 0)
+	}
+	g.graph[u] = append(g.graph[u], v)
+}
+
+func (g *Graph) IDDFS(start string, goal string, maxDepth int) [][]string {
+	var allPaths [][]string
+	var arr []string
+	arr = append(arr, start)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	semaphore := make(chan struct{}, 200)
+	var err error
+
+	check := make(map[string]bool)
+	for depth := 1; depth <= maxDepth; depth++ {
+		if found {
+			break
 		}
-		// fmt.Println("curDepth: ", currentDepth, " source: ", source)
-		if !(*childVisited)[source] {
-			for _, node := range (*nearbyNode)[source] {
-				// fmt.Println("Node: ", node)
-				(*parent)[node] = append((*parent)[node], source)
-				if target == node {
-					println("lohe")
-					(*nodeVisited)[node] = true
-					return
-				} else if !(*nodeVisited)[node] {
-					dfs(nodeVisited, childVisited, nearbyNode, parent, node, target, currentDepth-1)
-				}
+		println("aaaa", len(arr))
+		// scrap all and create edge
+		var newUrls []string
+		for i, url := range arr {
+			if check[url] {
+				continue
 			}
-			(*childVisited)[source] = true
+			check[url] = true
+			wg.Add(1)
+			semaphore <- struct{}{} // Acquire a token
+			go func(url string, i int) {
+				collector := <-service.CollectorPool // Take a collector from the pool
+				defer wg.Done()
+				defer func() { <-semaphore }()
+				defer func() { service.CollectorPool <- collector }() // Return it back when done
+				var tempUrls []string
+				if value, ok := service.Data.Load(url); ok {
+					temp := value.([]schema.Data)
+					for _, x := range temp {
+						tempUrls = append(tempUrls, x.Url)
+					}
+				} else {
+					var temp []schema.Data
+					temp, _, _, err = utilities.ScrapeWikipedia("", url, collector, goal)
+					if err != nil {
+						log.Err(err).Msgf("Error scrap %v", url)
+					}
+					for _, x := range temp {
+						tempUrls = append(tempUrls, x.Url)
+					}
+					service.Data.Store(url, temp)
+				}
+
+				for _, x := range tempUrls {
+					g.AddEdge(url, x)
+				}
+
+				mu.Lock()
+				count++
+				newUrls = append(newUrls, tempUrls...)
+				mu.Unlock()
+			}(url, i)
 		}
-		(*nodeVisited)[source] = false
+
+		wg.Wait()
+		println("ne")
+		arr = newUrls
+		visited := make(map[string]bool)
+		path := make([]string, 0)
+		g.DLS(start, goal, depth, visited, &path, &allPaths)
 	}
+	return allPaths
 }
 
-func ids(nearbyNode *map[string][]string, source string, target string, currentDepth int) map[string][]string {
-	fmt.Println()
-	fmt.Println("depth: ", currentDepth)
-	nodeVisited := make(map[string]bool)
-	childVisited := make(map[string]bool)
-	parent := make(map[string][]string) //menunjukkan nilai parent
-	nodeVisited[source] = true
-	dfs(&nodeVisited, &childVisited, nearbyNode, &parent, source, target, currentDepth)
-	if !(nodeVisited)[target] && currentDepth < 5 {
-		// fmt.Println("Nearby Node: ", nearbyNode)
-		parent = ids(nearbyNode, source, target, currentDepth+1)
-	}
-	fmt.Println()
-	return parent
-}
+func (g *Graph) DLS(node string, goal string, depth int, visited map[string]bool, path *[]string, allPaths *[][]string) {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
 
-func printParent(parent map[string][]string, current string, target string) {
-	// fmt.Println(current)
-	res += current + " "
-	if current != target {
-		fmt.Println("parentnya: ", parent[current])
-		for _, node := range parent[current] {
-			printParent(parent, node, target)
+	*path = append(*path, node)
+	visited[node] = true
+
+	if node == goal {
+		found = true
+		println("hei")
+		newPath := make([]string, len(*path))
+		copy(newPath, *path)
+		*allPaths = append(*allPaths, newPath)
+		// disini???
+	} else if depth > 0 {
+
+		for _, neighbor := range g.graph[node] {
+			// println("aaaa")
+			if found && !isMulti {
+				break
+			}
+			if !visited[neighbor] {
+				countCompare++
+				g.DLS(neighbor, goal, depth-1, visited, path, allPaths)
+			}
 		}
 	}
+
+	// Backtrack cuy
+	*path = (*path)[:len(*path)-1]
+	visited[node] = false
 }
 
 func IdsScrapping(context *gin.Context) {
@@ -89,15 +153,17 @@ func IdsScrapping(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{"success": false, "message": "Error Validator"})
 		return
 	}
-	total = 0
-	total_compare = 0
+	g := NewGraph()
+	found = false
 
-	nearbyNode := make(map[string][]string)
-	source := request.Start
-	target := request.End
-	result := ids(&nearbyNode, source, target, 0)
+	start := request.Start
+	goal := request.End
+	maxDepth := 5
+	count = 0
+	countCompare = 0
+	isMulti = request.IsMulti
 
-	printParent(result, target, source)
-	context.JSON(http.StatusOK, gin.H{"success": true, "total": total, "total_compare": total_compare, "result": res})
+	paths := g.IDDFS(start, goal, maxDepth)
 
+	context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": paths})
 }

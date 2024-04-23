@@ -5,6 +5,7 @@ import (
 	"be-pathfinder/service"
 	"be-pathfinder/utilities"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -48,13 +49,19 @@ func BfsScrapping(context *gin.Context) {
 		result = append(result, schema.Data{Parent: request.Start})
 
 	}
-	count := 1
+	count := 0
 	for !found {
 		newUrls := []schema.Data{}
 		println("ini", len(urls))
 		for i, url := range urls {
-			if found  && !request.IsMulti{
-				context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": result})
+			if found && !request.IsMulti {
+				var resArray [][]string
+				for _, p := range result {
+					arr := strings.Split(p.Parent, " ")
+					arr = append(arr, request.End)
+					resArray = append(resArray, arr)
+				}
+				context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray})
 				return
 			}
 			if check[url.Url] {
@@ -86,7 +93,6 @@ func BfsScrapping(context *gin.Context) {
 					tempUrls, f, cc, err = utilities.ScrapeWikipedia(url.Parent, url.Url, collector, request.End)
 					if err != nil {
 						log.Err(err).Msgf("Error scrap %v", url)
-						// context.JSON(http.StatusOK, gin.H{"success": false})
 					}
 					service.Data.Store(url.Url, tempUrls)
 				}
@@ -110,5 +116,12 @@ func BfsScrapping(context *gin.Context) {
 		}
 	}
 
-	context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": result})
+	var resArray [][]string
+	for _, p := range result {
+		arr := strings.Split(p.Parent, " ")
+		arr = append(arr, request.End)
+		resArray = append(resArray, arr)
+	}
+
+	context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray})
 }
