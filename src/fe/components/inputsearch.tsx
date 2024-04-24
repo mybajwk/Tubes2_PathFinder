@@ -13,13 +13,14 @@ interface InputSearchProps {
     key: string;
     displayValue: string;
     actualValue: string;
+    label: string; 
     onChange: (actualValue: string, displayValue: string) => void;
     showRecommendations: boolean;
     setShowRecommendations: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const InputSearch: React.FC<InputSearchProps> = ({
-    key, displayValue, actualValue, onChange, showRecommendations, setShowRecommendations
+    key, displayValue, actualValue, label, onChange, showRecommendations, setShowRecommendations
 }) => {
     const [filteredOptions, setFilteredOptions] = useState<Option[]>([]);
     const [isOptionSelected, setIsOptionSelected] = useState(false);
@@ -115,7 +116,7 @@ const InputSearch: React.FC<InputSearchProps> = ({
                         onFocus={handleFocus}
                         onBlur={handleBlur}
                         type="text"
-                        label="Search"
+                        label={label} 
                         labelPlacement="outside"
                         endContent={<SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />}
                         classNames={{

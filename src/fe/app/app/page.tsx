@@ -7,7 +7,7 @@ import { Switch, Tab, Tabs } from "@nextui-org/react";
 import LoadingButton from '@/components/button';
 import SwitchFilled from '@/components/switch';
 import { useTheme } from 'next-themes';
-import ForceGraph from '@/components/Graph';
+import ForceGraph from '@/components/graph';
 import { request } from 'http';
 
 export default function DocsPage() {
@@ -149,30 +149,8 @@ export default function DocsPage() {
 
     return (
         <div className='flex justify-center flex-col items-center'>
-            <h1 className={title()}>App</h1>
-            <div className="flex gap-10 mt-10 justify-center items-start">
-            <InputSearch
-                    key="from"
-                    displayValue={fromDisplay}
-                    actualValue={fromValue}
-                    onChange={handleInputChange(setFromValue, setFromDisplay)}
-                    showRecommendations={showRecommendationsFrom}
-                    setShowRecommendations={setShowRecommendationsFrom}
-                />
-                <div onClick={handleSwap} className="cursor-pointer">
-                    <AiOutlineSwap className="w-[40px] h-[40px] mt-8 text-gray-500 hover:text-gray-700" />
-                </div>
-                <InputSearch
-                    key="to"
-                    displayValue={toDisplay}
-                    actualValue={toValue}
-                    onChange={handleInputChange(setToValue, setToDisplay)}
-                    showRecommendations={showRecommendationsTo}
-                    setShowRecommendations={setShowRecommendationsTo}
-                />
-            </div>
-
-           <div className="flex gap-5 py-10 w-[400px]">
+            <h1 className={title()}>Search</h1>
+            <div className="flex gap-5 py-10 mt-4 w-[400px]">
                 <Tabs
                     size="lg"
                     aria-label="Options"
@@ -187,7 +165,30 @@ export default function DocsPage() {
                     <Tab key="texture" title="IDS" />
                 </Tabs>
             </div>
-            <div className="flex justify-center items-center">
+            <div className="flex gap-10 justify-center items-start">
+            <InputSearch
+                key="from"
+                displayValue={fromDisplay}
+                actualValue={fromValue}
+                label="From"  // Set label to "From" for the first input
+                onChange={handleInputChange(setFromValue, setFromDisplay)}
+                showRecommendations={showRecommendationsFrom}
+                setShowRecommendations={setShowRecommendationsFrom}
+            />
+                <div onClick={handleSwap} className="cursor-pointer">
+                    <AiOutlineSwap className="w-[40px] h-[40px] mt-8 text-gray-500 hover:text-gray-700" />
+                </div>
+                <InputSearch
+                    key="to"
+                    displayValue={toDisplay}
+                    actualValue={toValue}
+                    label="To"  // Set label to "To" for the second input
+                    onChange={handleInputChange(setToValue, setToDisplay)}
+                    showRecommendations={showRecommendationsTo}
+                    setShowRecommendations={setShowRecommendationsTo}
+                />
+            </div>
+            <div className="flex justify-center items-center mt-8">
                 <SwitchFilled isSelected={isMulti} onToggle={handleMulti} />
             </div>
             <div className="flex justify-center mt-8" >

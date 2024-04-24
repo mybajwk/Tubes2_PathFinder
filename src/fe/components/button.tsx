@@ -28,7 +28,7 @@ const LoadingButton: React.FC<LoadingButtonProps> = ({ handleSearch }) => {
           variant="ghost"
           size="lg"
         >
-          GO
+          <p className="font-bold text-inherit text-green-500">GO</p>
         </Button>
       ) : (
         <div className="flex justify-center items-center">
