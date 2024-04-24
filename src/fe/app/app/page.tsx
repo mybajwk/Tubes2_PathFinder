@@ -7,8 +7,27 @@ import { Switch, Tab, Tabs } from "@nextui-org/react";
 import LoadingButton from '@/components/button';
 import SwitchFilled from '@/components/switch';
 import { useTheme } from 'next-themes';
-import ForceGraph from '@/components/graph';
-import { request } from 'http';
+import ForceGraph from '@/components/Graph';
+
+interface ApiResponse {
+    result: string[][];
+    success: boolean;
+    total: number;
+    total_compare: number;
+}
+
+interface Node {
+    id: string;
+    group?: number;
+    value:string;
+    degree:number;
+}
+
+interface Link {
+    source: string;
+    target: string;
+    value?: number;
+}
 
 export default function DocsPage() {
     const [fromValue, setFromValue] = useState('');
@@ -24,7 +43,13 @@ export default function DocsPage() {
     const [toDisplay, setToDisplay] = useState('');
     const [actualValue, setActualValue] = useState<string>('');
     const [displayValue, setDisplayValue] = useState<string>('');
-    // console.log(fromDisplay,fromValue,toDisplay,toValue)
+    const [graphBg,setGraphBg] = useState("bg-zinc-800");
+
+    const [response,setResponse] = useState<ApiResponse>();
+    const [responseTime,setResponseTime] = useState<number | undefined>();
+
+    const [dataNode,setDataNode] = useState<Node[]>();
+    const [dataLink,setDataLink] = useState<Link[]>();
 
     const [tabClassNames, setTabClassNames] = useState({
         tabList: "gap-4 border-5 w-full",
@@ -44,27 +69,77 @@ export default function DocsPage() {
             base: "lg:flex md2:hidden sm:flex-[1.5] xl:flex-[1.2] w-full",
             tabContent: theme === 'dark' ? "group-data-[selected=true]:text-white" : "group-data-[selected=true]:text-black"
         });
-    }, [theme]); // Only re-run the effect if theme changes
+
+        const bgGraph = theme === 'dark' ? "bg-zinc-800" : "bg-zinc-200"
+        setGraphBg(bgGraph);
+    }, [theme]);
+
+    useEffect(() =>{
+        const dataInsert = response?.result;
+        if (dataInsert) {
+            const newNodes: Node[] = [];
+            const newLinks: Link[] = [];
+            for (let i = 0; i < dataInsert?.length; i++) {
+                for (let j = 0; j < dataInsert[i].length; j++) {
+                    const title = extractTitle(dataInsert[i][j]);
+
+                    let exists = false;
+                    if (newNodes) {
+                        for (let k = 0; k < newNodes.length; k++) {
+                            if (newNodes[k].id === title) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!exists) {
+                        newNodes.push({ id: title, value:dataInsert[i][j], degree:j});
+                    }
+
+                    if (j < dataInsert[i].length - 1) {
+                        newLinks.push({ source: extractTitle(dataInsert[i][j]), target: extractTitle(dataInsert[i][j + 1]) });
+                    }
+                }
+            }
+
+            setDataNode([]);
+            setDataLink([]);
+
+            if (newNodes.length > 0) {
+                setDataNode(prevNodes => {
+                    const nodes = prevNodes || [];
+                    return [...nodes, ...newNodes];
+                });
+            }
+
+            if (newLinks.length > 0) {
+                setDataLink(prevLinks => {
+                    const links = prevLinks || [];
+                    return [...links, ...newLinks];
+                });
+            }
+            
+        }
+    }, [response]);
 
     const handleSwap = () => {
         [setFromDisplay, setFromValue, setToDisplay, setToValue].forEach(func => func(''));
-        // Logic to swap the actual values
         const tempValue = fromValue;
         setFromValue(toValue);
         setToValue(tempValue);
-        // Logic to swap the display values
         const tempDisplay = fromDisplay;
         setFromDisplay(toDisplay);
         setToDisplay(tempDisplay);
     };
 
     const handleSearch = async () => {
-        let url = 'https://localhost:7780/api/bfs'; // The URL to which the request is sent
+        let url = 'http://localhost:3000/api/bfs'; // The URL to which the request is sent
     
         if (isBfs) {
-            url = 'https://localhost:7780/api/bfs'
+            url = 'http://localhost:3000/api/bfs'
         } else {
-            url = 'https://localhost:7780/api/ids'
+            url = 'http://localhost:3000/api/ids'
         }
 
         let data = {
@@ -85,28 +160,32 @@ export default function DocsPage() {
             data.end = url;
         }
 
-        console.log(data)
-
 
         try {
             if (!fromValue || !toValue) {
                 throw new Error('Data not completed');
             }
 
-            const response = await fetch(url, {
+            const startTime = performance.now();
+            
+            const api = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(data)
             });
+
+            const endTime = performance.now();
+            const timeTaken = endTime - startTime;
+            setResponseTime(timeTaken)
     
-            if (!response.ok) {
+            if (!api.ok) {
                 throw new Error('Network response was not ok');
             }
     
-            const responseData = await response.json();
-            console.log(responseData);
+            const responseData = await api.json();
+            setResponse(responseData);
         } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
         }
@@ -120,32 +199,39 @@ export default function DocsPage() {
         }
     };
 
-    const nodes = [
-        { id: 'node1' },
-        { id: 'node2' },
-        { id: 'node3' },
-        { id: 'node5' },
-        { id: 'node4' },
-      ];
+    // const nodes = [
+    //     { id: 'node1' },
+    //     { id: 'node2' },
+    //     { id: 'node3' },
+    //     { id: 'node5' },
+    //     { id: 'node4' },
+    // ];
     
-      const links = [
-        { source: 'node1', target: 'node2' },
-        { source: 'node2', target: 'node3' },
-        { source: 'node2', target: 'node5' },
-        { source: 'node5', target: 'node4'},
-        { source: 'node3', target: 'node4'},
-      ];
+    //   const links = [
+    //     { source: 'node1', target: 'node2' },
+    //     { source: 'node2', target: 'node3' },
+    //     { source: 'node2', target: 'node5' },
+    //     { source: 'node5', target: 'node4'},
+    //     { source: 'node3', target: 'node4'},
+    // ];
 
-      const handleInputChange = (
+    const handleInputChange = (
         setActualValue: Dispatch<SetStateAction<string>>, 
         setDisplayValue: Dispatch<SetStateAction<string>>
-      ) => (
+    ) => (
         actualValue: string, 
         displayValue: string
-      ) => {
+    ) => {
         setActualValue(actualValue);
         setDisplayValue(displayValue);
-      };
+    };
+
+    const extractTitle = (url: string) => {
+        const parts = url.split('/wiki/');
+        const titleWithUnderscores = parts[1];
+        const titleWithSpaces = titleWithUnderscores.replace(/_/g, ' '); // Replace all underscores with spaces
+        return titleWithSpaces;
+    };
 
     return (
         <div className='flex justify-center flex-col items-center'>
@@ -194,9 +280,28 @@ export default function DocsPage() {
             <div className="flex justify-center mt-8" >
                 <LoadingButton handleSearch={handleSearch} />
             </div>
-            <div className="flex justify-center items-center bg-zinc-800 bg-opacity-90 rounded-3xl mt-8 w-[800px]">
-                <ForceGraph nodes={nodes} links={links} />
-            </div>
+            {response && responseTime && dataNode && dataLink &&
+                <>
+                    <div className="flex flex-wrap items-center justify-center mt-8 mb-8 text-lg w-[120%]">
+                        Found 
+                        <b className="text-2xl mx-2">{response.result.length}</b> 
+                        paths with 
+                        <b className="text-2xl mx-2">{response.result[0].length-1}</b> 
+                        degrees of separation from 
+                        <b className="text-2xl mx-2">{dataNode.find(node => node.degree === 0)?.id}</b> 
+                        to 
+                        <b className="text-2xl mx-2">{dataNode.reduce((prev, current) => (prev.degree > current.degree) ? prev : current)?.id}</b> 
+                        in 
+                        <b className="text-2xl mx-2">{(responseTime / 1000).toFixed(3)} seconds</b>
+                        with
+                        <b className="text-2xl mx-2">{response.total_compare}</b>
+                        total compare.
+                    </div>
+                    <div className={`flex justify-center items-center ${graphBg} bg-opacity-90 rounded-3xl mt-8 w-[800px]`}>
+                        <ForceGraph nodes={dataNode} links={dataLink}/>
+                    </div>
+                </>
+            }
         </div>
     );
 }
