@@ -1,6 +1,8 @@
 import React from "react";
 
-export const InfinityIcon = (props) => (
+interface InfinityIconProps extends React.SVGProps<SVGSVGElement> {}
+
+export const InfinityIcon: React.FC<InfinityIconProps> = (props) => (
     <svg
       aria-hidden="true"
       focusable="false"
