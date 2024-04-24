@@ -51,7 +51,9 @@ type OptionsType = {
     move: {
       direction: MoveDirection;
       enable: boolean;
-      outModes: OutMode;
+      outModes: {
+        default: "none" | "bounce" | "destroy" | "out"; // Example adjustment
+      };
       random: boolean;
       speed: number;
       straight: boolean;
@@ -137,7 +139,9 @@ const ParticlesComponent = (props: ParticlesComponentProps) => {
           move: {
             direction: "none" as MoveDirection,
             enable: true,
-            outModes: "bounce" as OutMode,
+            outModes: {
+              default: theme === 'dark' ? "bounce" : "out"
+            },
             random: true,
             speed: 1,
             straight: false,

@@ -1,17 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { useTheme } from 'next-themes';
+import { Simulation, SimulationNodeDatum, SimulationLinkDatum, D3DragEvent, drag } from 'd3';
 
 // Define your node and link structures
-interface Node {
+interface Node extends SimulationNodeDatum {
   id: string;
   group?: number;
   value: string;
   degree: number;
 }
-interface Link {
-  source: string;
-  target: string;
+interface Link extends SimulationLinkDatum<Node> {
   value?: number;
 }
 
@@ -26,7 +25,8 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
-    const svg = d3.select(svgRef.current);
+    const svgElement = svgRef.current as SVGSVGElement;
+    const svg = d3.select(svgElement);
     svg.selectAll("*").remove();
 
     const width = 800;
@@ -36,9 +36,12 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
     const g = svg.append('g');
 
     // Enable zoom and pan
-    svg.call(d3.zoom().on("zoom", (event) => {
+    const zoomBehavior = d3.zoom<SVGSVGElement, unknown>()
+    .on("zoom", (event) => {
       g.attr("transform", event.transform);
-    }));
+    });
+
+  svg.call(zoomBehavior);
 
     // Define arrow markers for both directions
     svg.append("defs").selectAll("marker")
@@ -56,7 +59,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
         .attr('fill', '#999');
 
     const simulation = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id(d => typeof d === 'object' ? d.id : d).distance(100))
+      .force('link', d3.forceLink<Node, Link>(links).id(d => d.id).distance(100))
       .force('charge', d3.forceManyBody().strength(-50))
       .force('center', d3.forceCenter());
 
@@ -68,7 +71,11 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
       .data(links)
       .join("line")
       .attr("marker-end", d => {
-        return d.target.degree > d.source.degree ? "url(#end)" : "url(#start)"; // Determine arrow marker based on degree direction
+        // TypeScript might still think d.source or d.target could be string or number.
+        // We assert they are definitely of type Node.
+        const source = d.source as Node;
+        const target = d.target as Node;
+        return target.degree > source.degree ? "url(#end)" : "url(#start)";
     });
     
     const maxDegree = d3.max(nodes, d => d.degree) || 1;
@@ -77,7 +84,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
     const node = g.append('g')
       .attr("stroke", "#fff")
       .attr("stroke-width", 1.5)
-      .selectAll("circle")
+      .selectAll<SVGCircleElement, Node>("circle")
       .data(nodes)
       .join("circle")
       .attr('r', 10)
@@ -87,11 +94,10 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
         } else if (d.degree === maxDegree) {
           return 'red';
         } else {
-          // Define specific colors for other degrees
           const colors = ['blue', 'orange', 'yellow', 'gray', 'purple', 'pink', 'darkgreen'];
           return colors[d.degree % colors.length];
         }
-      })
+    })
       .call(drag(simulation));
 
     // Add node labels
@@ -106,40 +112,37 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
       .attr("fill", theme === "light" ? "black" : "white");
 
     simulation.on('tick', () => {
-      link.attr('x1', d => d.source.x)
-          .attr('y1', d => d.source.y)
-          .attr('x2', d => d.target.x)
-          .attr('y2', d => d.target.y);
-
-      node.attr('cx', d => d.x)
-          .attr('cy', d => d.y);
-
-      labels.attr('x', d => d.x + 15)
-            .attr('y', d => d.y + 5);
+      link
+        .attr('x1', d => (d.source as Node).x ?? 0)
+        .attr('y1', d => (d.source as Node).y ?? 0)
+        .attr('x2', d => (d.target as Node).x ?? 0)
+        .attr('y2', d => (d.target as Node).y ?? 0);
+    
+      node
+        .attr('cx', d => d.x ?? 0)
+        .attr('cy', d => d.y ?? 0);
+    
+      labels
+        .attr('x', d => (d.x ?? 0) + 15)
+        .attr('y', d => (d.y ?? 0) + 5);
     });
 
-    function drag(simulation) {
-      function dragstarted(event) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        event.subject.fx = event.subject.x;
-        event.subject.fy = event.subject.y;
-      }
-
-      function dragged(event) {
-        event.subject.fx = event.x;
-        event.subject.fy = event.y;
-      }
-
-      function dragended(event) {
-        if (!event.active) simulation.alphaTarget(0);
-        event.subject.fx = null;
-        event.subject.fy = null;
-      }
-
-      return d3.drag()
-        .on('start', dragstarted)
-        .on('drag', dragged)
-        .on('end', dragended);
+    function drag(simulation: Simulation<Node, undefined>) {
+      return d3.drag<SVGCircleElement, Node>()
+        .on('start', (event: D3DragEvent<SVGCircleElement, Node, Node>) => {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
+          event.subject.fx = event.subject.x;
+          event.subject.fy = event.subject.y;
+        })
+        .on('drag', (event: D3DragEvent<SVGCircleElement, Node, Node>) => {
+          event.subject.fx = event.x;
+          event.subject.fy = event.y;
+        })
+        .on('end', (event: D3DragEvent<SVGCircleElement, Node, Node>) => {
+          if (!event.active) simulation.alphaTarget(0);
+          event.subject.fx = null;
+          event.subject.fy = null;
+        });
     }
 
   }, [nodes, links]);

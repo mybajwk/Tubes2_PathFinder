@@ -41,8 +41,6 @@ export default function DocsPage() {
 
     const [fromDisplay, setFromDisplay] = useState('');
     const [toDisplay, setToDisplay] = useState('');
-    const [actualValue, setActualValue] = useState<string>('');
-    const [displayValue, setDisplayValue] = useState<string>('');
     const [graphBg,setGraphBg] = useState("bg-zinc-800");
 
     const [response,setResponse] = useState<ApiResponse>();
@@ -136,9 +134,9 @@ export default function DocsPage() {
     const handleSearch = async () => {
         let url = 'http://localhost:3000/api/bfs'; // The URL to which the request is sent
     
-        if (isBfs) {
+        if (isBfs=="color") {
             url = 'http://localhost:3000/api/bfs'
-        } else {
+        } else if (isBfs=="texture") {
             url = 'http://localhost:3000/api/ids'
         }
 
@@ -159,7 +157,6 @@ export default function DocsPage() {
             const url = `https://en.wikipedia.org/wiki/${encodeURIComponent(formattedDisplay)}`;
             data.end = url;
         }
-
 
         try {
             if (!fromValue || !toValue) {
