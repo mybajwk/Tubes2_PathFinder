@@ -132,12 +132,12 @@ export default function DocsPage() {
     };
 
     const handleSearch = async () => {
-        let url = 'http://localhost:3000/api/bfs'; // The URL to which the request is sent
-    
+        let url = process.env.NEXT_PUBLIC_BFS_ENDPOINT;
+
         if (isBfs=="color") {
-            url = 'http://localhost:3000/api/bfs'
+            url = process.env.NEXT_PUBLIC_BFS_ENDPOINT
         } else if (isBfs=="texture") {
-            url = 'http://localhost:3000/api/ids'
+            url = process.env.NEXT_PUBLIC_IDS_ENDPOINT
         }
 
         let data = {
@@ -165,6 +165,10 @@ export default function DocsPage() {
 
             const startTime = performance.now();
             
+            if (!url) {
+                throw new Error('Error file .env not found');
+            }
+
             const api = await fetch(url, {
                 method: 'POST',
                 headers: {

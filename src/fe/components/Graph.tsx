@@ -14,7 +14,6 @@ interface Link extends SimulationLinkDatum<Node> {
   value?: number;
 }
 
-// Props expected by the ForceGraph component
 interface ForceGraphProps {
   nodes: Node[];
   links: Link[];
@@ -45,7 +44,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
 
     // Define arrow markers for both directions
     svg.append("defs").selectAll("marker")
-      .data(["end", "start"]) // Define markers for both directions
+      .data(["end", "start"])
       .enter().append("marker")
         .attr("id", d => d)
         .attr("viewBox", "0 -5 10 10")
@@ -55,7 +54,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
         .attr("markerHeight", 6)
         .attr("orient", d => d === "start" ? "auto-start-reverse" : "auto")
       .append("path")
-        .attr("d", d => d === "start" ? "M10,-5L0,0L10,5" : "M0,-5L10,0L0,5") // Adjust path for different directions
+        .attr("d", d => d === "start" ? "M10,-5L0,0L10,5" : "M0,-5L10,0L0,5")
         .attr('fill', '#999');
 
     const simulation = d3.forceSimulation(nodes)
@@ -71,8 +70,6 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
       .data(links)
       .join("line")
       .attr("marker-end", d => {
-        // TypeScript might still think d.source or d.target could be string or number.
-        // We assert they are definitely of type Node.
         const source = d.source as Node;
         const target = d.target as Node;
         return target.degree > source.degree ? "url(#end)" : "url(#start)";
@@ -157,7 +154,6 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
 
 const Legend: React.FC<{ nodes: Node[] }> = ({ nodes }) => {
   if (!nodes || nodes.length === 0) {
-    // Handle the case where nodes are not available
     return null;
   }
 
@@ -171,7 +167,6 @@ const Legend: React.FC<{ nodes: Node[] }> = ({ nodes }) => {
     } else if (d === maxDegree) {
       return 'red';
     } else {
-      // Define specific colors for other degrees
       const colors = ['blue', 'orange', 'yellow', 'gray', 'purple', 'pink', 'darkgreen'];
       return colors[d % colors.length];
     }
