@@ -10,7 +10,7 @@ services:
     hostname: api-service
     restart: on-failure
     ports:
-      - "7780:3000"
+      - "7780:7780"
     networks:
       stima-network:
         aliases:

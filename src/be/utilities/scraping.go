@@ -62,6 +62,7 @@ func ScrapeWikipedia(parent string, url string, c *colly.Collector, end string) 
 
 	// Start the scraping process
 	err := c.Visit(url)
+	c.Wait()
 	if err != nil {
 		return nil, false, count, err
 	}
