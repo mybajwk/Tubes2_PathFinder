@@ -49,6 +49,9 @@ export default function DocsPage() {
     const [dataNode,setDataNode] = useState<Node[]>();
     const [dataLink,setDataLink] = useState<Link[]>();
 
+    console.log();
+
+
     const [tabClassNames, setTabClassNames] = useState({
         tabList: "gap-4 border-5 w-full",
         cursor: theme === 'dark' ? "bg-neutral-800" : "bg-zinc-300",
@@ -129,6 +132,8 @@ export default function DocsPage() {
         const tempDisplay = fromDisplay;
         setFromDisplay(toDisplay);
         setToDisplay(tempDisplay);
+        setShowRecommendationsFrom(false);
+        setShowRecommendationsTo(false);
     };
 
     const handleSearch = async () => {
@@ -150,12 +155,14 @@ export default function DocsPage() {
             const formattedDisplay = toDisplay.replace(/ /g, '_');
             const url = `https://en.wikipedia.org/wiki/${encodeURIComponent(formattedDisplay)}`;
             data.end = url;
+            setToValue(url);
         }
 
         if (!fromValue) {
             const formattedDisplay = fromDisplay.replace(/ /g, '_');
             const url = `https://en.wikipedia.org/wiki/${encodeURIComponent(formattedDisplay)}`;
-            data.end = url;
+            data.start = url;
+            setFromValue(url);
         }
 
         try {
@@ -253,15 +260,15 @@ export default function DocsPage() {
                 </Tabs>
             </div>
             <div className="flex gap-10 justify-center items-start">
-            <InputSearch
-                key="from"
-                displayValue={fromDisplay}
-                actualValue={fromValue}
-                label="From"  // Set label to "From" for the first input
-                onChange={handleInputChange(setFromValue, setFromDisplay)}
-                showRecommendations={showRecommendationsFrom}
-                setShowRecommendations={setShowRecommendationsFrom}
-            />
+                <InputSearch
+                    key="from"
+                    displayValue={fromDisplay}
+                    actualValue={fromValue}
+                    label="From"
+                    onChange={handleInputChange(setFromValue, setFromDisplay)}
+                    showRecommendations={showRecommendationsFrom}
+                    setShowRecommendations={setShowRecommendationsFrom}
+                />
                 <div onClick={handleSwap} className="cursor-pointer">
                     <AiOutlineSwap className="w-[40px] h-[40px] mt-8 text-gray-500 hover:text-gray-700" />
                 </div>
@@ -269,7 +276,7 @@ export default function DocsPage() {
                     key="to"
                     displayValue={toDisplay}
                     actualValue={toValue}
-                    label="To"  // Set label to "To" for the second input
+                    label="To"
                     onChange={handleInputChange(setToValue, setToDisplay)}
                     showRecommendations={showRecommendationsTo}
                     setShowRecommendations={setShowRecommendationsTo}

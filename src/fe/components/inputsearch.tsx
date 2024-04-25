@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Input } from "@nextui-org/react";
 import { SearchIcon } from "./icons";
 import debounce from "lodash.debounce";
@@ -26,6 +26,9 @@ const InputSearch: React.FC<InputSearchProps> = ({
     const [isOptionSelected, setIsOptionSelected] = useState(false);
     const { theme } = useTheme();
     const [inputFocused, setInputFocused] = useState(false);
+    const [selectedIndex, setSelectedIndex] = useState<number>(0);
+
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const fetchSuggestions = useCallback(async (searchValue: string) => {
         if (!searchValue.trim()) {
@@ -72,13 +75,40 @@ const InputSearch: React.FC<InputSearchProps> = ({
             setShowRecommendations(true);
         }
     };
+
+    const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter' && filteredOptions.length > 0 && selectedIndex >= 0) {
+            const selectedOption = filteredOptions[selectedIndex];
+            setIsOptionSelected(true);
+            onChange(selectedOption.value, selectedOption.label);
+            setShowRecommendations(false);
+            setIsOptionSelected(false);
+            setInputFocused(false);
+        } else if (event.key === 'ArrowDown' && filteredOptions.length > 0) {
+            event.preventDefault();
+            setSelectedIndex(prevIndex => (prevIndex + 1) % filteredOptions.length);
+            inputRef.current?.focus(); // Set focus back to input
+        } else if (event.key === 'ArrowUp' && filteredOptions.length > 0) {
+            event.preventDefault();
+            setSelectedIndex(prevIndex => (prevIndex - 1 + filteredOptions.length) % filteredOptions.length);
+            inputRef.current?.focus(); // Set focus back to input
+        }
+    };
+    
+    useEffect(() => {
+        if (selectedIndex >= 0 && filteredOptions.length > 0 && showRecommendations) {
+            const itemElement = document.querySelector(`#option-${selectedIndex}`);
+            itemElement?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }, [selectedIndex, filteredOptions, showRecommendations]);
     
     const handleBlur = () => {
         // Delay hiding recommendations to allow time for option selection
         setTimeout(() => {
             setShowRecommendations(false);
             setInputFocused(false);
-        }, 100);
+            setSelectedIndex(0);
+        }, 300);
     };
 
     const handleOptionSelect = (option: Option) => {
@@ -97,6 +127,8 @@ const InputSearch: React.FC<InputSearchProps> = ({
     }`;
 
     const optionClasses = (index: number) => `p-2 cursor-pointer ${
+        index === selectedIndex ? (theme === 'dark' ? "bg-neutral-700 text-white" : "bg-zinc-200 text-black") : ""
+    } ${
         theme === 'dark' ? "hover:bg-black" : "hover:bg-zinc-300"
     } ${
         index === 0 ? "first:rounded-t-2xl" : ""
@@ -109,12 +141,14 @@ const InputSearch: React.FC<InputSearchProps> = ({
             <div className="flex flex-col gap-2">
                 <div className="flex w-full flex-wrap items-end md:flex-nowrap mb-6 md:mb-0 gap-4">
                     <Input
+                        ref={inputRef}
                         autoComplete="off"
                         size="lg"
                         value={displayValue}
                         onChange={handleInputChange}
                         onFocus={handleFocus}
                         onBlur={handleBlur}
+                        onKeyDown={handleKeyPress}
                         type="text"
                         label={label} 
                         labelPlacement="outside"
@@ -129,6 +163,7 @@ const InputSearch: React.FC<InputSearchProps> = ({
                         {filteredOptions.map((option, index) => (
                             <div
                                 key={option.value}
+                                id={`option-${index}`}
                                 className={optionClasses(index)}
                                 onClick={() => handleOptionSelect(option)}
                             >
