@@ -32,22 +32,33 @@ func BfsScrapping(context *gin.Context) {
 
 	var wg sync.WaitGroup
 	var mu sync.Mutex
+	var err error
 	semaphore := make(chan struct{}, 200)
 
 	found := false
 	check := make(map[string]bool)
-
-	urls, f, countCompare, err := utilities.ScrapeWikipedia(request.Start, request.Start, service.Collectors[0], request.End)
-	if err != nil {
-		log.Err(err).Msg("Error scrap")
-		context.JSON(http.StatusOK, gin.H{"success": false})
-
+	var urls []schema.Data
+	countCompare = 0
+	if value, ok := service.Data.Load(request.Start); ok {
+		urls = value.([]schema.Data)
+		for _, p := range urls {
+			countCompare++
+			if p.Url == request.End {
+				found = true
+				break
+			}
+		}
+	} else {
+		urls, found, countCompare, err = utilities.ScrapeWikipedia(request.Start, request.Start, service.Collectors[0], request.End)
+		if err != nil {
+			log.Err(err).Msg("Error scrap")
+			context.JSON(http.StatusOK, gin.H{"success": false})
+		}
+		service.Data.Store(request.Start, urls)
 	}
 	result := []schema.Data{}
-	if f || request.Start == request.End {
-		found = true
+	if found || request.Start == request.End {
 		result = append(result, schema.Data{Parent: request.Start})
-
 	}
 	count := 0
 	for !found {
@@ -80,7 +91,6 @@ func BfsScrapping(context *gin.Context) {
 				var cc int
 				var f bool
 				if value, ok := service.Data.Load(url.Url); ok {
-
 					tempUrls = value.([]schema.Data)
 					for _, p := range tempUrls {
 						cc++
@@ -98,7 +108,9 @@ func BfsScrapping(context *gin.Context) {
 				}
 
 				mu.Lock()
-				newUrls = append(newUrls, tempUrls...)
+				if !found {
+					newUrls = append(newUrls, tempUrls...)
+				}
 				if f {
 					result = append(result, url)
 					found = true
@@ -119,7 +131,9 @@ func BfsScrapping(context *gin.Context) {
 	var resArray [][]string
 	for _, p := range result {
 		arr := strings.Split(p.Parent, " ")
-		arr = append(arr, request.End)
+		if arr[0] != request.End {
+			arr = append(arr, request.End)
+		}
 		resArray = append(resArray, arr)
 	}
 

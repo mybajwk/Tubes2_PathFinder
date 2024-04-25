@@ -2,7 +2,6 @@ package utilities
 
 import (
 	"be-pathfinder/schema"
-	"be-pathfinder/service"
 	"regexp"
 
 	"github.com/gocolly/colly/v2"
@@ -69,45 +68,4 @@ func ScrapeWikipedia(parent string, url string, c *colly.Collector, end string) 
 
 	// Return the found Wikipedia URLs
 	return foundURLs, found, count, nil
-}
-
-func OptimizeScrapeWikipedia(url string, c *colly.Collector, nearbyNode *map[string][]string) {
-	// defer wg.Done()
-	uniq := make(map[string]bool)
-
-	count := 0
-
-	var foundURLs []string
-
-	combinedRegex := regexp.MustCompile(`^/wiki/([^#:\s]+)$`)
-
-	if value, ok := service.DataString.Load(url); ok {
-		println("aaa")
-		(*nearbyNode)[url] = value.([]string)
-	} else {
-		c.OnHTML("a[href]", func(e *colly.HTMLElement) {
-			link := e.Attr("href")
-			// fmt.Println("tes")
-			if combinedRegex.MatchString(link) {
-				fullLink := "https://en.wikipedia.org" + link
-				if !isExcluded(link) {
-					if !uniq[fullLink] {
-						uniq[fullLink] = true
-						count++
-						foundURLs = append(foundURLs, fullLink)
-					}
-				}
-			}
-
-		})
-		// Start the scraping process
-		err := c.Visit(url)
-		if err != nil {
-			return
-		}
-		(*nearbyNode)[url] = foundURLs
-		service.Data.Store(url, foundURLs)
-		println("b")
-	}
-
 }
