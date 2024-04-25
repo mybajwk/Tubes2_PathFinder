@@ -21,7 +21,7 @@ func main() {
 	var port string = os.Getenv("PORT")
 
 	if port == "" {
-		port = "3000"
+		port = "7780"
 	}
 	router.Run(":" + port)
 }

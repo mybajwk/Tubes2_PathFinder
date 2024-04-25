@@ -136,6 +136,9 @@ func BfsScrapping(context *gin.Context) {
 		}
 		resArray = append(resArray, arr)
 	}
-
-	context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray})
+	if isMulti {
+		context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray})
+	} else {
+		context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray[0]})
+	}
 }
