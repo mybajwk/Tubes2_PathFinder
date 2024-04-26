@@ -1,7 +1,10 @@
 package utilities
 
 import (
+	"be-pathfinder/database"
+	"be-pathfinder/repository"
 	"be-pathfinder/schema"
+	"context"
 	"regexp"
 	"strings"
 
@@ -17,6 +20,9 @@ import (
 // }
 
 func isExcluded(link string) bool {
+	if link == "/wiki/Main_Page" {
+		return true
+	}
 	excludedNamespaces2 := []string{
 		"Category:", "Wikipedia:", "File:", "Help:", "Portal:",
 		"Special:", "Talk:", "User_template:", "Template_talk:", "Mainpage:", "Main_Page",
@@ -31,16 +37,38 @@ func isExcluded(link string) bool {
 
 func ScrapeWikipedia(parent string, url string, c *colly.Collector, end string) ([]schema.Data, bool, int, error) {
 	// defer wg.Done()
+	ctx := context.Background()
+	query := repository.New(database.Database)
 	uniq := make(map[string]bool)
 	found := false
 
 	count := 0
 
 	var foundURLs []schema.Data
+	var urls []string
 	defer func() {
 		foundURLs = nil
+		urls = nil
 		// uniq = nil
 	}()
+
+	// check db
+	dataUrls, err := query.GetUrl(ctx, url)
+	if err == nil {
+		for _, dataurl := range dataUrls.RelatedUrls {
+			if dataurl == end && !found {
+				foundURLs = append(foundURLs, schema.Data{Url: dataurl, Parent: parent + " " + dataurl})
+				found = true
+				// return
+			} else if !uniq[dataurl] {
+				count++
+				foundURLs = append(foundURLs, schema.Data{Url: dataurl, Parent: parent + " " + dataurl})
+			}
+		}
+		return foundURLs, found, count, nil
+	}
+
+	// not found do scrap
 
 	combinedRegex := regexp.MustCompile(`^/wiki/([^#:\s]+)$`)
 
@@ -55,12 +83,14 @@ func ScrapeWikipedia(parent string, url string, c *colly.Collector, end string) 
 						// println(url, "", fullLink)
 						foundURLs = append(foundURLs, schema.Data{Url: fullLink, Parent: parent + " " + fullLink})
 						found = true
-						return
+						// return
 					} else if !uniq[fullLink] {
-						uniq[fullLink] = true
-						count++
+						if !found {
+							count++
+						}
 						foundURLs = append(foundURLs, schema.Data{Url: fullLink, Parent: parent + " " + fullLink})
 					}
+					urls = append(urls, fullLink)
 				}
 			}
 		}
@@ -68,11 +98,19 @@ func ScrapeWikipedia(parent string, url string, c *colly.Collector, end string) 
 	})
 
 	// Start the scraping process
-	err := c.Visit(url)
+	err = c.Visit(url)
 	c.Wait()
 	if err != nil {
 		return nil, false, count, err
 	}
+
+	// save to db
+
+	data := repository.SaveUrlParams{
+		Url:         url,
+		RelatedUrls: urls,
+	}
+	_ = query.SaveUrl(ctx, data)
 
 	// Return the found Wikipedia URLs
 	return foundURLs, found, count, nil

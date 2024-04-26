@@ -1,2 +1,9 @@
 env: development
-api_key: "174f812d2729c1dc5e767a2334de9361e46d7408c50fa8aeb3befa9a33aea545"
+
+database:
+  #connection to postgresql
+  host: 127.0.0.1
+  port: 9001
+  db: wiki-db
+  username: postgres
+  password: postgres

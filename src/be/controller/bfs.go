@@ -39,23 +39,23 @@ func BfsScrapping(context *gin.Context) {
 	check := make(map[string]bool)
 	var urls []schema.Data
 	countCompare = 0
-	if value, ok := service.Data.Load(request.Start); ok {
-		urls = value.([]schema.Data)
-		for _, p := range urls {
-			countCompare++
-			if p.Url == request.End {
-				found = true
-				break
-			}
-		}
-	} else {
-		urls, found, countCompare, err = utilities.ScrapeWikipedia(request.Start, request.Start, service.Collectors[0], request.End)
-		if err != nil {
-			log.Err(err).Msg("Error scrap")
-			context.JSON(http.StatusOK, gin.H{"success": false})
-		}
-		service.Data.Store(request.Start, urls)
+	// if value, ok := service.Data.Load(request.Start); ok {
+	// 	urls = value.([]schema.Data)
+	// 	for _, p := range urls {
+	// 		countCompare++
+	// 		if p.Url == request.End {
+	// 			found = true
+	// 			break
+	// 		}
+	// 	}
+	// } else {
+	urls, found, countCompare, err = utilities.ScrapeWikipedia(request.Start, request.Start, service.Collectors[0], request.End)
+	if err != nil {
+		log.Err(err).Msg("Error scrap")
+		context.JSON(http.StatusOK, gin.H{"success": false})
 	}
+	service.Data.Store(request.Start, urls)
+	// }
 	result := []schema.Data{}
 	if found || request.Start == request.End {
 		result = append(result, schema.Data{Parent: request.Start})
@@ -94,21 +94,9 @@ func BfsScrapping(context *gin.Context) {
 				var tempUrls []schema.Data
 				var cc int
 				var f bool
-				if value, ok := service.Data.Load(url.Url); ok {
-					tempUrls = value.([]schema.Data)
-					for _, p := range tempUrls {
-						cc++
-						if p.Url == request.End {
-							f = true
-							break
-						}
-					}
-				} else {
-					tempUrls, f, cc, err = utilities.ScrapeWikipedia(url.Parent, url.Url, collector, request.End)
-					if err != nil {
-						log.Err(err).Msgf("Error scrap %v", url)
-					}
-					service.Data.Store(url.Url, tempUrls)
+				tempUrls, f, cc, err = utilities.ScrapeWikipedia(url.Parent, url.Url, collector, request.End)
+				if err != nil {
+					log.Err(err).Msgf("Error scrap %v", url)
 				}
 
 				mu.Lock()
@@ -140,6 +128,10 @@ func BfsScrapping(context *gin.Context) {
 		}
 		resArray = append(resArray, arr)
 	}
-	context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray})
+	if isMulti {
+		context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray})
+	} else {
+		context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray[0:1]})
+	}
 
 }

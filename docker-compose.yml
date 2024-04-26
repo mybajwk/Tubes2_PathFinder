@@ -15,6 +15,9 @@ services:
       stima-network:
         aliases:
           - api.local
+    environment:
+      DATABASE_HOST: postgresql.stima.local
+      DATABASE_PORT: 5432
   fe-service:
     build:
       dockerfile: Dockerfile
@@ -29,6 +32,25 @@ services:
       stima-network:
         aliases:
           - fe.local
+  postgresql:
+    image: postgres:latest
+    container_name: postgresql
+    hostname: postgresql
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: auth-db
+    volumes:
+      - ./src/postgresql/data:/var/lib/postgresql/data
+      - ./src/postgresql/init/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 9001:5432
+    networks:
+      stima-network:
+        aliases:
+          - postgresql.stima.local
+    command: ["postgres", "-c", "wal_level=logical"]
 
 networks:
   stima-network:

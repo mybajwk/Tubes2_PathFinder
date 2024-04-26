@@ -10,8 +10,14 @@ import (
 
 // Schema struct
 type Schema struct {
-	Env    string `mapstructure:"env"`
-	ApiKey string `mapstructure:"api_key"`
+	Env      string `mapstructure:"env"`
+	Database struct {
+		Host     string `mapstructure:"host"`
+		Port     string `mapstructure:"port"`
+		Db       string `mapstructure:"db"`
+		Username string `mapstructure:"username"`
+		Password string `mapstructure:"password"`
+	} `mapstructure:"database"`
 }
 
 // Config global parameter config

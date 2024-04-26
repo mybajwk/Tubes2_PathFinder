@@ -70,21 +70,14 @@ func (g *Graph) IDDFS(start string, goal string, maxDepth int) [][]string {
 				defer func() { <-semaphore }()
 				defer func() { service.CollectorPool <- collector }() // Return it back when done
 				var tempUrls []string
-				if value, ok := service.Data.Load(url); ok {
-					temp := value.([]schema.Data)
-					for _, x := range temp {
-						tempUrls = append(tempUrls, x.Url)
-					}
-				} else {
-					var temp []schema.Data
-					temp, _, _, err = utilities.ScrapeWikipedia("", url, collector, goal)
-					if err != nil {
-						log.Err(err).Msgf("Error scrap %v", url)
-					}
-					for _, x := range temp {
-						tempUrls = append(tempUrls, x.Url)
-					}
-					service.Data.Store(url, temp)
+
+				var temp []schema.Data
+				temp, _, _, err = utilities.ScrapeWikipedia("", url, collector, goal)
+				if err != nil {
+					log.Err(err).Msgf("Error scrap %v", url)
+				}
+				for _, x := range temp {
+					tempUrls = append(tempUrls, x.Url)
 				}
 
 				for _, x := range tempUrls {
@@ -99,7 +92,6 @@ func (g *Graph) IDDFS(start string, goal string, maxDepth int) [][]string {
 		}
 
 		wg.Wait()
-		println("ne")
 		arr = newUrls
 		visited := make(map[string]bool)
 		path := make([]string, 0)
@@ -117,7 +109,6 @@ func (g *Graph) DLS(node string, goal string, depth int, visited map[string]bool
 
 	if node == goal {
 		found = true
-		println("hei")
 		newPath := make([]string, len(*path))
 		copy(newPath, *path)
 		*allPaths = append(*allPaths, newPath)

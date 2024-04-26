@@ -1,6 +1,7 @@
 package main
 
 import (
+	"be-pathfinder/database"
 	"be-pathfinder/routes"
 	"be-pathfinder/service"
 	"os"
@@ -16,6 +17,7 @@ func main() {
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	// init
 	service.InitColly(200)
+	database.Connect()
 
 	routes.SetupApiRoute(router)
 	var port string = os.Getenv("PORT")
