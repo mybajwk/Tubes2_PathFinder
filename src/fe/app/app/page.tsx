@@ -7,7 +7,7 @@ import { Switch, Tab, Tabs } from "@nextui-org/react";
 import LoadingButton from '@/components/button';
 import SwitchFilled from '@/components/switch';
 import { useTheme } from 'next-themes';
-import ForceGraph from '@/components/Graph';
+import Graph from '@/components/Graph';
 
 interface ApiResponse {
     result: string[][];
@@ -244,7 +244,7 @@ export default function DocsPage() {
     return (
         <div className='flex justify-center flex-col items-center'>
             <h1 className={title()}>Search</h1>
-            <div className="flex gap-5 py-10 mt-4 w-[400px]">
+            <div className="flex gap-5 py-10 mt-4 max-w-[400px] w-[60vw]">
                 <Tabs
                     size="lg"
                     aria-label="Options"
@@ -259,7 +259,7 @@ export default function DocsPage() {
                     <Tab key="texture" title="IDS" />
                 </Tabs>
             </div>
-            <div className="flex gap-10 justify-center items-start">
+            <div className="flex flex-col md:flex-row md:gap-10 gap-1 justify-center md:items-start items-center">
                 <InputSearch
                     key="from"
                     displayValue={fromDisplay}
@@ -270,7 +270,7 @@ export default function DocsPage() {
                     setShowRecommendations={setShowRecommendationsFrom}
                 />
                 <div onClick={handleSwap} className="cursor-pointer">
-                    <AiOutlineSwap className="w-[40px] h-[40px] mt-8 text-gray-500 hover:text-gray-700" />
+                    <AiOutlineSwap className="w-[40px] h-[40px] md:mt-8 text-gray-500 hover:text-gray-700" />
                 </div>
                 <InputSearch
                     key="to"
@@ -290,23 +290,23 @@ export default function DocsPage() {
             </div>
             {response && responseTime && dataNode && dataLink &&
                 <>
-                    <div className="flex flex-wrap items-center justify-center mt-8 mb-8 text-lg w-[120%]">
+                    <div className="flex flex-wrap items-center justify-center mt-8 mb-8 text-lg w-[80vw] md:w-[120%]">
                         Found 
-                        <b className="text-2xl mx-2">{response.result.length}</b> 
+                        <b className="text-lg md:text-2xl mx-2">{response.result.length}</b> 
                         paths with 
-                        <b className="text-2xl mx-2">{response.result[0].length-1}</b> 
+                        <b className="text-lg md:text-2xl mx-2">{response.result[0].length-1}</b> 
                         degrees of separation from 
-                        <b className="text-2xl mx-2">{dataNode.find(node => node.degree === 0)?.id}</b> 
+                        <b className="text-lg md:text-2xl mx-2">{dataNode.find(node => node.degree === 0)?.id}</b> 
                         to 
-                        <b className="text-2xl mx-2">{dataNode.reduce((prev, current) => (prev.degree > current.degree) ? prev : current)?.id}</b> 
+                        <b className="text-lg md:text-2xl mx-2">{dataNode.reduce((prev, current) => (prev.degree > current.degree) ? prev : current)?.id}</b> 
                         in 
-                        <b className="text-2xl mx-2">{(responseTime / 1000).toFixed(3)} seconds</b>
+                        <b className="text-lg md:text-2xl mx-2">{(responseTime / 1000).toFixed(3)} seconds</b>
                         with
-                        <b className="text-2xl mx-2">{response.total_compare}</b>
+                        <b className="text-lg md:text-2xl mx-2">{response.total_compare}</b>
                         total compare.
                     </div>
-                    <div className={`flex justify-center items-center ${graphBg} bg-opacity-90 rounded-3xl mt-8 w-[800px]`}>
-                        <ForceGraph nodes={dataNode} links={dataLink}/>
+                    <div className={`flex justify-center items-center ${graphBg} bg-opacity-90 rounded-3xl mt-8 w-[80vw] max-w-[800px]`}>
+                        <Graph nodes={dataNode} links={dataLink}/>
                     </div>
                 </>
             }

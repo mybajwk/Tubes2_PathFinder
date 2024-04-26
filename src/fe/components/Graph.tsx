@@ -14,12 +14,12 @@ interface Link extends SimulationLinkDatum<Node> {
   value?: number;
 }
 
-interface ForceGraphProps {
+interface GraphProps {
   nodes: Node[];
   links: Link[];
 }
 
-const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
+const Graph: React.FC<GraphProps> = ({ nodes, links }) => {
   const { theme } = useTheme()
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -95,7 +95,12 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
           return colors[d.degree % colors.length];
         }
     })
-      .call(drag(simulation));
+      .call(drag(simulation))
+      .style('cursor', 'pointer')
+      .on("click", (event, d) => {
+        window.open(d.value, "_blank");
+      });
+  
 
     // Add node labels
     const labels = g.append('g')
@@ -145,7 +150,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ nodes, links }) => {
   }, [nodes, links]);
 
   return (
-    <div style={{ display: "flex", position: "relative" }}>
+    <div style={{ display: "flex", position: "relative", width: "100%", maxWidth: "800px" }}>
       <svg ref={svgRef}></svg>
       <Legend nodes={nodes} />
     </div>
@@ -157,10 +162,7 @@ const Legend: React.FC<{ nodes: Node[] }> = ({ nodes }) => {
     return null;
   }
 
-  // Get the maximum degree among all nodes
   const maxDegree = d3.max(nodes, d => d.degree) || 1;
-
-  // Generate color scale based on the maximum degree
   const colorScale = d3.scaleSequential((d) => {
     if (d === 0) {
       return 'green';
@@ -172,7 +174,6 @@ const Legend: React.FC<{ nodes: Node[] }> = ({ nodes }) => {
     }
   });
 
-  // Create legend items dynamically based on the color scale
   const legendItems = [];
   for (let i = 0; i <= maxDegree; i++) {
     legendItems.push({
@@ -183,7 +184,7 @@ const Legend: React.FC<{ nodes: Node[] }> = ({ nodes }) => {
   }
 
   return (
-    <div className="absolute top-0 left-0 p-4">
+    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 text-xs sm:text-sm">
       {legendItems.map(item => (
         <div key={item.degree} className="flex items-center mb-2">
           <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: item.color }}></div>
@@ -194,4 +195,4 @@ const Legend: React.FC<{ nodes: Node[] }> = ({ nodes }) => {
   );
 };
 
-export default ForceGraph;
+export default Graph;
