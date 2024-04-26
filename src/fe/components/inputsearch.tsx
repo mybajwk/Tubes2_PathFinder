@@ -122,11 +122,11 @@ const InputSearch: React.FC<InputSearchProps> = ({
         }, 100);
     };
 
-    const suggestionBoxClasses = `absolute w-[500px] mt-[90px] max-h-[200px] overflow-y-auto z-10 rounded-2xl ${
+    const suggestionBoxClasses = `absolute z-50 max-w-[450px] w-[80vw] md:w-[30vw] mt-[90px] max-h-[200px] overflow-y-auto z-10 rounded-2xl ${
         theme === 'dark' ? "bg-neutral-800 text-white" : "bg-neutral-100 text-gray-900"
     }`;
 
-    const optionClasses = (index: number) => `p-2 cursor-pointer ${
+    const optionClasses = (index: number) => `p-2 cursor-pointer max-w-[450px] w-[80vw] md:w-[30vw] ${
         index === selectedIndex ? (theme === 'dark' ? "bg-neutral-700 text-white" : "bg-zinc-200 text-black") : ""
     } ${
         theme === 'dark' ? "hover:bg-black" : "hover:bg-zinc-300"
@@ -154,7 +154,7 @@ const InputSearch: React.FC<InputSearchProps> = ({
                         labelPlacement="outside"
                         endContent={<SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />}
                         classNames={{
-                            inputWrapper: "w-[500px] h-[60px]",
+                            inputWrapper: "max-w-[450px] w-[80vw] md:w-[30vw] h-[60px]",
                         }}
                     />
                 </div>
