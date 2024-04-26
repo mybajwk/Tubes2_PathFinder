@@ -80,6 +80,7 @@ func BfsScrapping(context *gin.Context) {
 				return
 			}
 			if check[url.Url] {
+				count++
 				continue
 			}
 			check[url.Url] = true
@@ -128,7 +129,7 @@ func BfsScrapping(context *gin.Context) {
 		}
 		resArray = append(resArray, arr)
 	}
-	if isMulti {
+	if request.IsMulti {
 		context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray})
 	} else {
 		context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray[0:1]})
