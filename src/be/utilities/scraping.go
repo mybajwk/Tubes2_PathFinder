@@ -3,6 +3,7 @@ package utilities
 import (
 	"be-pathfinder/schema"
 	"regexp"
+	"strings"
 
 	"github.com/gocolly/colly/v2"
 )
@@ -48,16 +49,18 @@ func ScrapeWikipedia(parent string, url string, c *colly.Collector, end string) 
 		// fmt.Println("tes")
 		if combinedRegex.MatchString(link) {
 			fullLink := "https://en.wikipedia.org" + link
-			if !isExcluded(link) {
-				if fullLink == end && !found {
-					// println(url, "", fullLink)
-					foundURLs = append(foundURLs, schema.Data{Url: fullLink, Parent: parent + " " + fullLink})
-					found = true
-					return
-				} else if !uniq[fullLink] {
-					uniq[fullLink] = true
-					count++
-					foundURLs = append(foundURLs, schema.Data{Url: fullLink, Parent: parent + " " + fullLink})
+			if isVisible(e) {
+				if !isExcluded(link) {
+					if fullLink == end && !found {
+						// println(url, "", fullLink)
+						foundURLs = append(foundURLs, schema.Data{Url: fullLink, Parent: parent + " " + fullLink})
+						found = true
+						return
+					} else if !uniq[fullLink] {
+						uniq[fullLink] = true
+						count++
+						foundURLs = append(foundURLs, schema.Data{Url: fullLink, Parent: parent + " " + fullLink})
+					}
 				}
 			}
 		}
@@ -73,4 +76,23 @@ func ScrapeWikipedia(parent string, url string, c *colly.Collector, end string) 
 
 	// Return the found Wikipedia URLs
 	return foundURLs, found, count, nil
+}
+
+func isVisible(e *colly.HTMLElement) bool {
+	class := e.Attr("class")
+	class = strings.ReplaceAll(class, " ", "")
+	if strings.Contains(class, "nowraplinks") {
+		return false
+	}
+
+	// Check parent elements for visibility
+	for parent := e.DOM.Parent(); parent.Length() != 0; parent = parent.Parent() {
+		parentClass, found := parent.Attr("class")
+		parentClass = strings.ReplaceAll(parentClass, " ", "")
+		if found && strings.Contains(parentClass, "nowraplinks") {
+			// fmt.Println(e.Attr("href"))
+			return false
+		}
+	}
+	return true
 }

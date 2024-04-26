@@ -64,6 +64,10 @@ func BfsScrapping(context *gin.Context) {
 	for !found {
 		newUrls := []schema.Data{}
 		println("ini", len(urls))
+		if len(urls) == 0 {
+			log.Err(err).Msgf("Error scrap url not found")
+			break
+		}
 		for i, url := range urls {
 			if found && !request.IsMulti {
 				var resArray [][]string

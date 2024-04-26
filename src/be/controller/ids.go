@@ -52,7 +52,9 @@ func (g *Graph) IDDFS(start string, goal string, maxDepth int) [][]string {
 		if found {
 			break
 		}
-		println("aaaa", len(arr))
+		if len(arr) == 0 {
+			break
+		}
 		// scrap all and create edge
 		var newUrls []string
 		for i, url := range arr {
