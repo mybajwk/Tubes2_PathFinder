@@ -4,6 +4,7 @@ import (
 	"be-pathfinder/schema"
 	"be-pathfinder/service"
 	"be-pathfinder/utilities"
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -165,5 +166,16 @@ func IdsScrapping(context *gin.Context) {
 
 	paths := g.IDDFS(start, goal, maxDepth)
 
-	context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": paths})
+	uniqueMap := make(map[string]bool)
+
+	var uniqueArrayOfArrays [][]string
+	for _, arr := range paths {
+		arrString := fmt.Sprintf("%v", arr)
+		if !uniqueMap[arrString] {
+			uniqueMap[arrString] = true
+			uniqueArrayOfArrays = append(uniqueArrayOfArrays, arr)
+		}
+	}
+
+	context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": uniqueArrayOfArrays})
 }

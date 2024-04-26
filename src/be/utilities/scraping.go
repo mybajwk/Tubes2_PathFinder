@@ -36,6 +36,10 @@ func ScrapeWikipedia(parent string, url string, c *colly.Collector, end string) 
 	count := 0
 
 	var foundURLs []schema.Data
+	defer func() {
+		foundURLs = nil
+		// uniq = nil
+	}()
 
 	combinedRegex := regexp.MustCompile(`^/wiki/([^#:\s]+)$`)
 
