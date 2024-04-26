@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {Switch, cn} from "@nextui-org/react";
 import InfinityIcon from "./iconinfinity";
-import { SunFilledIcon } from "./icons";
+import { SingleIcon, SunFilledIcon } from "./icons";
 import { useTheme } from "next-themes";
 
 interface SwitchFilledProps {
@@ -36,7 +36,7 @@ const SwitchFilled: React.FC<SwitchFilledProps> = ({ isSelected, onToggle }) => 
         isSelected ? (
           <InfinityIcon className={className} />
         ) : (
-          <SunFilledIcon className={className} />
+          <SingleIcon className={className} />
         )
       }
       classNames={{
