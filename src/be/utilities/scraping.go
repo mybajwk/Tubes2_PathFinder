@@ -110,7 +110,9 @@ func ScrapeWikipedia(parent string, url string, c *colly.Collector, end string) 
 		Url:         url,
 		RelatedUrls: urls,
 	}
-	_ = query.SaveUrl(ctx, data)
+	if urls != nil {
+		_ = query.SaveUrl(ctx, data)
+	}
 
 	// Return the found Wikipedia URLs
 	return foundURLs, found, count, nil
