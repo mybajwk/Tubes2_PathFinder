@@ -40,8 +40,8 @@ func (g *Graph) AddEdge(u, v string) {
 
 func (g *Graph) IDDFS(start string, goal string, maxDepth int) [][]string {
 	var allPaths [][]string
-	var arr []string
-	arr = append(arr, start)
+	var urls []string
+	urls = append(urls, start)
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	semaphore := make(chan struct{}, 200)
@@ -52,12 +52,12 @@ func (g *Graph) IDDFS(start string, goal string, maxDepth int) [][]string {
 		if found {
 			break
 		}
-		if len(arr) == 0 {
+		if len(urls) == 0 {
 			break
 		}
 		// scrap all and create edge
 		var newUrls []string
-		for i, url := range arr {
+		for i, url := range urls {
 			if check[url] {
 				continue
 			}
@@ -92,7 +92,7 @@ func (g *Graph) IDDFS(start string, goal string, maxDepth int) [][]string {
 		}
 
 		wg.Wait()
-		arr = newUrls
+		urls = newUrls
 		visited := make(map[string]bool)
 		path := make([]string, 0)
 		g.DLS(start, goal, depth, visited, &path, &allPaths)
@@ -152,7 +152,7 @@ func IdsScrapping(context *gin.Context) {
 
 	start := request.Start
 	goal := request.End
-	maxDepth := 5
+	maxDepth := 6
 	count = 0
 	countCompare = 0
 	isMulti = request.IsMulti

@@ -18,7 +18,9 @@ func InitColly(n int) {
 			colly.AllowedDomains("en.wikipedia.org", "www.wikipedia.org"),
 			colly.AllowURLRevisit(),
 			colly.Async(true),
+			colly.CacheDir(""),
 		)
+
 		Collectors[i].UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
 		Collectors[i].SetRequestTimeout(15 * time.Second)
 		Collectors[i].Limit(&colly.LimitRule{

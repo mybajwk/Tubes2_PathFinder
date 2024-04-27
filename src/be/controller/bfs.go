@@ -39,16 +39,7 @@ func BfsScrapping(context *gin.Context) {
 	check := make(map[string]bool)
 	var urls []schema.Data
 	countCompare = 0
-	// if value, ok := service.Data.Load(request.Start); ok {
-	// 	urls = value.([]schema.Data)
-	// 	for _, p := range urls {
-	// 		countCompare++
-	// 		if p.Url == request.End {
-	// 			found = true
-	// 			break
-	// 		}
-	// 	}
-	// } else {
+
 	urls, found, countCompare, err = utilities.ScrapeWikipedia(request.Start, request.Start, service.Collectors[0], request.End)
 	if err != nil {
 		log.Err(err).Msg("Error scrap")
@@ -80,7 +71,6 @@ func BfsScrapping(context *gin.Context) {
 				return
 			}
 			if check[url.Url] {
-				count++
 				continue
 			}
 			check[url.Url] = true
