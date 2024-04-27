@@ -55,6 +55,7 @@ func (g *Graph) IDDFS(start string, goal string, maxDepth int) [][]string {
 		if len(urls) == 0 {
 			break
 		}
+
 		// scrap all and create edge
 		var newUrls []string
 		for i, url := range urls {
@@ -95,6 +96,7 @@ func (g *Graph) IDDFS(start string, goal string, maxDepth int) [][]string {
 		urls = newUrls
 		visited := make(map[string]bool)
 		path := make([]string, 0)
+		countCompare++
 		g.DLS(start, goal, depth, visited, &path, &allPaths)
 	}
 	return allPaths
