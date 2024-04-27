@@ -33,7 +33,10 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<head />
+			<head>
+				<link rel="icon" type="image/svg+xml" href="/logo.svg" />
+				<link rel="apple-touch-icon" href="/logo.svg" />
+			</head>
 			<body
 				className={clsx(
 					"min-h-screen bg-background font-sans antialiased",

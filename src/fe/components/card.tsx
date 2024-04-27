@@ -21,7 +21,7 @@ const Tes: React.FC<TesProps> = ({ title, nim, image }) => {
           alt="Card background"
           className="object-cover rounded-xl"
           src={image}
-          width={270}
+          width={250}
         />
       </CardBody>
     </Card>

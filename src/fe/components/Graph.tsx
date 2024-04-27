@@ -91,7 +91,7 @@ const Graph: React.FC<GraphProps> = ({ nodes, links }) => {
         } else if (d.degree === maxDegree) {
           return 'red';
         } else {
-          const colors = ['blue', 'orange', 'yellow', 'gray', 'purple', 'pink', 'darkgreen'];
+          const colors = ['blue', 'orange', 'yellow', 'purple', 'pink', 'gray','darkgreen'];
           return colors[d.degree % colors.length];
         }
     })
@@ -169,7 +169,7 @@ const Legend: React.FC<{ nodes: Node[] }> = ({ nodes }) => {
     } else if (d === maxDegree) {
       return 'red';
     } else {
-      const colors = ['blue', 'orange', 'yellow', 'gray', 'purple', 'pink', 'darkgreen'];
+      const colors = ['blue', 'orange', 'yellow', 'purple', 'pink', 'gray','darkgreen'];
       return colors[d % colors.length];
     }
   });
