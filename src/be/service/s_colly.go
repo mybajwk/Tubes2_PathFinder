@@ -12,7 +12,7 @@ var CollectorPool chan *colly.Collector
 var Data sync.Map
 
 func InitColly(n int) {
-	CollectorPool = make(chan *colly.Collector, n) // Initialize the pool with the capacity of n
+	CollectorPool = make(chan *colly.Collector, n)
 	for i := 0; i < n; i++ {
 		Collectors[i] = colly.NewCollector(
 			colly.AllowedDomains("en.wikipedia.org", "www.wikipedia.org"),
@@ -26,7 +26,6 @@ func InitColly(n int) {
 		Collectors[i].Limit(&colly.LimitRule{
 			DomainGlob:  "*wikipedia.org*", // Adjust according to your target domain
 			Parallelism: 5,                 // Number of parallel requests to the domain
-			// Delay:       0,1 * time.Second,   // Wait time between requests to the domain
 		})
 		CollectorPool <- Collectors[i] // Add the collector to the pool
 	}

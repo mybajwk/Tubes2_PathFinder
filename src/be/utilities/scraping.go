@@ -11,14 +11,6 @@ import (
 	"github.com/gocolly/colly/v2"
 )
 
-// func isValidLink(link string) bool {
-// 	parsedURL, err := url.Parse(link)
-// 	if err != nil {
-// 		return false
-// 	}
-// 	return strings.HasPrefix(parsedURL.Path, "/wiki/")
-// }
-
 func isExcluded(link string) bool {
 	if link == "/wiki/Main_Page" {
 		return true
@@ -69,21 +61,17 @@ func ScrapeWikipedia(parent string, url string, c *colly.Collector, end string) 
 	}
 
 	// not found do scrap
-
 	combinedRegex := regexp.MustCompile(`^/wiki/([^#:\s]+)$`)
 
 	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
-		// fmt.Println("tes")
 		if combinedRegex.MatchString(link) {
 			fullLink := "https://en.wikipedia.org" + link
 			if isVisible(e) {
 				if !isExcluded(link) {
 					if fullLink == end && !found {
-						// println(url, "", fullLink)
 						foundURLs = append(foundURLs, schema.Data{Url: fullLink, Parent: parent + " " + fullLink})
 						found = true
-						// return
 					} else if !uniq[fullLink] {
 						if !found {
 							count++

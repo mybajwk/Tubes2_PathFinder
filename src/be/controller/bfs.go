@@ -39,18 +39,20 @@ func BfsScrapping(context *gin.Context) {
 	check := make(map[string]bool)
 	var urls []schema.Data
 
+	// scrap url start
 	urls, found, countCompare, err = utilities.ScrapeWikipedia(request.Start, request.Start, service.Collectors[0], request.End)
 	if err != nil {
 		log.Err(err).Msg("Error scrap")
 		context.JSON(http.StatusOK, gin.H{"success": false})
 	}
 	service.Data.Store(request.Start, urls)
-	// }
+
 	result := []schema.Data{}
 	if found || request.Start == request.End {
 		result = append(result, schema.Data{Parent: request.Start})
 	}
 	count := 0
+
 	for !found {
 		newUrls := []schema.Data{}
 		println("ini", len(urls))
@@ -58,6 +60,7 @@ func BfsScrapping(context *gin.Context) {
 			log.Err(err).Msgf("Error scrap url not found")
 			break
 		}
+		// scrap semua url
 		for i, url := range urls {
 			if found && !request.IsMulti {
 				var resArray [][]string
@@ -77,10 +80,13 @@ func BfsScrapping(context *gin.Context) {
 			wg.Add(1)
 			semaphore <- struct{}{} // Acquire a token
 			go func(url schema.Data, i int) {
-				collector := <-service.CollectorPool // Take a collector from the pool
+				// set collector dari pool untuk thread
+				collector := <-service.CollectorPool
 				defer wg.Done()
 				defer func() { <-semaphore }()
-				defer func() { service.CollectorPool <- collector }() // Return it back when done
+				defer func() { service.CollectorPool <- collector }()
+
+				// mulai logic scrap
 				var tempUrls []schema.Data
 				var cc int
 				var f bool
@@ -89,6 +95,7 @@ func BfsScrapping(context *gin.Context) {
 					log.Err(err).Msgf("Error scrap %v", url)
 				}
 
+				// update variable dengan lock sebaa=gai pengaman
 				mu.Lock()
 				if !found {
 					newUrls = append(newUrls, tempUrls...)
@@ -101,6 +108,8 @@ func BfsScrapping(context *gin.Context) {
 				mu.Unlock()
 			}(url, i)
 		}
+
+		// untuk memastikan semua thread selesai terlebih dahulu
 		wg.Wait()
 
 		urls = newUrls
@@ -120,6 +129,8 @@ func BfsScrapping(context *gin.Context) {
 	}
 
 	countCompare--
+
+	// in case karena go routine jadi dapat lebih dari 1
 	if request.IsMulti {
 		context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray})
 	} else {

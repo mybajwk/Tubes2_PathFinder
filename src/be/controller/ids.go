@@ -64,12 +64,13 @@ func (g *Graph) IDDFS(start string, goal string, maxDepth int) [][]string {
 			}
 			check[url] = true
 			wg.Add(1)
-			semaphore <- struct{}{} // Acquire a token
+			semaphore <- struct{}{}
 			go func(url string, i int) {
-				collector := <-service.CollectorPool // Take a collector from the pool
+				// set collector dari pool untuk thread
+				collector := <-service.CollectorPool
 				defer wg.Done()
 				defer func() { <-semaphore }()
-				defer func() { service.CollectorPool <- collector }() // Return it back when done
+				defer func() { service.CollectorPool <- collector }()
 				var tempUrls []string
 
 				var temp []schema.Data
@@ -96,6 +97,7 @@ func (g *Graph) IDDFS(start string, goal string, maxDepth int) [][]string {
 		urls = newUrls
 		visited := make(map[string]bool)
 		path := make([]string, 0)
+		// mulai dls
 		countCompare++
 		g.DLS(start, goal, depth, visited, &path, &allPaths)
 	}
@@ -163,6 +165,7 @@ func IdsScrapping(context *gin.Context) {
 
 	uniqueMap := make(map[string]bool)
 
+	// pastikan result unique
 	var uniqueArrayOfArrays [][]string
 	for _, arr := range paths {
 		arrString := fmt.Sprintf("%v", arr)
