@@ -57,12 +57,39 @@ export default function DocsPage() {
     }, [theme]);
 
     useEffect(() => {
-        const processResponse = async () => {
-            setWikiCard([]);
+        const ProcessNodeLink = async () => {
             const dataInsert = response?.result;
             if (dataInsert) {
                 const newNodes = [];
                 const newLinks = [];
+                for (let i = 0; i < dataInsert.length; i++) {
+                    for (let j = 0; j < dataInsert[i].length; j++) {
+                        const title = extractTitle(dataInsert[i][j]);
+                        let exists = newNodes.some(node => node.id === title);
+                        if (!exists) {
+                            newNodes.push({ id: title, value: dataInsert[i][j], degree: j });
+                        }
+
+                        if (j < dataInsert[i].length - 1) {
+                            newLinks.push({ source: extractTitle(dataInsert[i][j]), target: extractTitle(dataInsert[i][j + 1]) });
+                        }
+                    }
+                }
+                setDataNode(newNodes);
+                setDataLink(newLinks);
+            }
+        };
+
+        if (response?.result) {
+            ProcessNodeLink();
+        }
+    }, [response]);
+
+    useEffect(() => {
+        const processResponse = async () => {
+            setWikiCard([]);
+            const dataInsert = response?.result;
+            if (dataInsert) {
                 for (let i = 0; i < dataInsert.length; i++) {
                     let newWikiList : WikiCard[] = [];
                     for (let j = 0; j < dataInsert[i].length; j++) {
@@ -70,43 +97,32 @@ export default function DocsPage() {
                         const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(titleraw)}`;
 
                         try {
-                            const response = await fetch(url);
-                            const data = await response.json();
-                            const newEntry = {
-                                title: data.title,
-                                degree: j,
-                                description: data.description,
-                                thumbnail:{
-                                    source:data.thumbnail ? data.thumbnail.source : null
-                                },
-                                value: dataInsert[i][j]
-                            };
+                            if (wikiCard.length<=10) {
+                                const response = await fetch(url);
+                                const data = await response.json();
+                                const newEntry = {
+                                    title: data.title,
+                                    degree: j,
+                                    description: data.description,
+                                    thumbnail:{
+                                        source:data.thumbnail ? data.thumbnail.source : null
+                                    },
+                                    value: dataInsert[i][j]
+                                };
 
-                            newWikiList.push(newEntry);
-
-                            const title = extractTitle(dataInsert[i][j]);
-                            let exists = newNodes.some(node => node.id === title);
-                            if (!exists) {
-                                newNodes.push({ id: title, value: dataInsert[i][j], degree: j });
-                            }
-
-                            if (j < dataInsert[i].length - 1) {
-                                newLinks.push({ source: extractTitle(dataInsert[i][j]), target: extractTitle(dataInsert[i][j + 1]) });
+                                newWikiList.push(newEntry);
                             }
                         } catch (error) {
                             console.error("Failed to fetch data:", error);
                         }
                     }
-
-                    setWikiCard(prevWikiCard => [...prevWikiCard, newWikiList]);
+                    
+                    if (wikiCard.length<=10) {
+                        setWikiCard(prevWikiCard => [...prevWikiCard, newWikiList]);   
+                    }
                 }
-
-                // Assuming setDataNode and setDataLink are functions to update your state
-                setDataNode(newNodes);
-                setDataLink(newLinks);
             }
         };
-
         if (response?.result) {
             processResponse();
         }

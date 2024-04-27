@@ -25,7 +25,7 @@ const cardData = [
 
 export default function AboutPage() {
 	return (
-		<div>
+		<div className="mt-8">
 			<h1 className={title()} >About Us</h1>
 			<br />
 			<div className="w-full flex flex-wrap gap-10 justify-center py-10">
