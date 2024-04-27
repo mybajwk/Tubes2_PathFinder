@@ -39,6 +39,23 @@ func BfsScrapping(context *gin.Context) {
 	check := make(map[string]bool)
 	var urls []schema.Data
 
+	countCompare = 0
+
+	result := []schema.Data{}
+	if request.Start == request.End {
+		result = append(result, schema.Data{Parent: request.Start})
+		countCompare = 1
+		found = true
+		var resArray [][]string
+		for _, p := range result {
+			arr := strings.Split(p.Parent, " ")
+			arr = append(arr, request.End)
+			resArray = append(resArray, arr)
+		}
+		context.JSON(http.StatusOK, gin.H{"success": true, "total": count, "total_compare": countCompare, "result": resArray[0:1]})
+		return
+	}
+
 	// scrap url start
 	urls, found, countCompare, err = utilities.ScrapeWikipedia(request.Start, request.Start, service.Collectors[0], request.End)
 	if err != nil {
@@ -47,7 +64,6 @@ func BfsScrapping(context *gin.Context) {
 	}
 	service.Data.Store(request.Start, urls)
 
-	result := []schema.Data{}
 	if found || request.Start == request.End {
 		result = append(result, schema.Data{Parent: request.Start})
 	}
