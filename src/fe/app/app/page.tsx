@@ -8,26 +8,8 @@ import LoadingButton from '@/components/button';
 import SwitchFilled from '@/components/switch';
 import { useTheme } from 'next-themes';
 import Graph from '@/components/Graph';
-
-interface ApiResponse {
-    result: string[][];
-    success: boolean;
-    total: number;
-    total_compare: number;
-}
-
-interface Node {
-    id: string;
-    group?: number;
-    value:string;
-    degree:number;
-}
-
-interface Link {
-    source: string;
-    target: string;
-    value?: number;
-}
+import { ApiResponse, Link, Node, WikiCard } from '@/types';
+import WikiCardList from '@/components/wikicard';
 
 export default function DocsPage() {
     const [fromValue, setFromValue] = useState('');
@@ -49,8 +31,7 @@ export default function DocsPage() {
     const [dataNode,setDataNode] = useState<Node[]>();
     const [dataLink,setDataLink] = useState<Link[]>();
 
-    console.log();
-
+    const[wikiCard,setWikiCard] = useState<WikiCard[][]>([]);
 
     const [tabClassNames, setTabClassNames] = useState({
         tabList: "gap-4 border-5 w-full",
@@ -75,52 +56,59 @@ export default function DocsPage() {
         setGraphBg(bgGraph);
     }, [theme]);
 
-    useEffect(() =>{
-        const dataInsert = response?.result;
-        if (dataInsert) {
-            const newNodes: Node[] = [];
-            const newLinks: Link[] = [];
-            for (let i = 0; i < dataInsert?.length; i++) {
-                for (let j = 0; j < dataInsert[i].length; j++) {
-                    const title = extractTitle(dataInsert[i][j]);
+    useEffect(() => {
+        const processResponse = async () => {
+            setWikiCard([]);
+            const dataInsert = response?.result;
+            if (dataInsert) {
+                const newNodes = [];
+                const newLinks = [];
+                for (let i = 0; i < dataInsert.length; i++) {
+                    let newWikiList : WikiCard[] = [];
+                    for (let j = 0; j < dataInsert[i].length; j++) {
+                        const titleraw = extractTitleRaw(dataInsert[i][j]);
+                        const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(titleraw)}`;
 
-                    let exists = false;
-                    if (newNodes) {
-                        for (let k = 0; k < newNodes.length; k++) {
-                            if (newNodes[k].id === title) {
-                                exists = true;
-                                break;
+                        try {
+                            const response = await fetch(url);
+                            const data = await response.json();
+                            const newEntry = {
+                                title: data.title,
+                                degree: j,
+                                description: data.description,
+                                thumbnail:{
+                                    source:data.thumbnail ? data.thumbnail.source : null
+                                },
+                                value: dataInsert[i][j]
+                            };
+
+                            newWikiList.push(newEntry);
+
+                            const title = extractTitle(dataInsert[i][j]);
+                            let exists = newNodes.some(node => node.id === title);
+                            if (!exists) {
+                                newNodes.push({ id: title, value: dataInsert[i][j], degree: j });
                             }
+
+                            if (j < dataInsert[i].length - 1) {
+                                newLinks.push({ source: extractTitle(dataInsert[i][j]), target: extractTitle(dataInsert[i][j + 1]) });
+                            }
+                        } catch (error) {
+                            console.error("Failed to fetch data:", error);
                         }
                     }
 
-                    if (!exists) {
-                        newNodes.push({ id: title, value:dataInsert[i][j], degree:j});
-                    }
-
-                    if (j < dataInsert[i].length - 1) {
-                        newLinks.push({ source: extractTitle(dataInsert[i][j]), target: extractTitle(dataInsert[i][j + 1]) });
-                    }
+                    setWikiCard(prevWikiCard => [...prevWikiCard, newWikiList]);
                 }
-            }
 
-            setDataNode([]);
-            setDataLink([]);
-
-            if (newNodes.length > 0) {
-                setDataNode(prevNodes => {
-                    const nodes = prevNodes || [];
-                    return [...nodes, ...newNodes];
-                });
+                // Assuming setDataNode and setDataLink are functions to update your state
+                setDataNode(newNodes);
+                setDataLink(newLinks);
             }
+        };
 
-            if (newLinks.length > 0) {
-                setDataLink(prevLinks => {
-                    const links = prevLinks || [];
-                    return [...links, ...newLinks];
-                });
-            }
-            
+        if (response?.result) {
+            processResponse();
         }
     }, [response]);
 
@@ -207,22 +195,6 @@ export default function DocsPage() {
         }
     };
 
-    // const nodes = [
-    //     { id: 'node1' },
-    //     { id: 'node2' },
-    //     { id: 'node3' },
-    //     { id: 'node5' },
-    //     { id: 'node4' },
-    // ];
-    
-    //   const links = [
-    //     { source: 'node1', target: 'node2' },
-    //     { source: 'node2', target: 'node3' },
-    //     { source: 'node2', target: 'node5' },
-    //     { source: 'node5', target: 'node4'},
-    //     { source: 'node3', target: 'node4'},
-    // ];
-
     const handleInputChange = (
         setActualValue: Dispatch<SetStateAction<string>>, 
         setDisplayValue: Dispatch<SetStateAction<string>>
@@ -237,8 +209,14 @@ export default function DocsPage() {
     const extractTitle = (url: string) => {
         const parts = url.split('/wiki/');
         const titleWithUnderscores = parts[1];
-        const titleWithSpaces = titleWithUnderscores.replace(/_/g, ' '); // Replace all underscores with spaces
+        const titleWithSpaces = titleWithUnderscores.replace(/_/g, ' ');
         return titleWithSpaces;
+    };
+
+    const extractTitleRaw = (url: string) => {
+        const parts = url.split('/wiki/');
+        const titleWithUnderscores = parts[1];
+        return titleWithUnderscores;
     };
 
     return (
@@ -290,7 +268,7 @@ export default function DocsPage() {
             </div>
             {response && responseTime && dataNode && dataLink &&
                 <>
-                    <div className="flex flex-wrap items-center justify-center mt-8 mb-8 text-lg w-[80vw] md:w-[120%]">
+                    <div className="flex flex-wrap items-center justify-center mt-8 text-lg w-[80vw] md:w-[120%]">
                         Found 
                         <b className="text-lg md:text-2xl mx-2">{response.result.length}</b> 
                         paths with 
@@ -309,6 +287,19 @@ export default function DocsPage() {
                         <Graph nodes={dataNode} links={dataLink}/>
                     </div>
                 </>
+            }
+
+            {wikiCard.length>0 && <h1 className="mt-8 text-2xl font-semibold">Individual Path</h1>}
+            {wikiCard.length>0 &&
+                <div className='mt-8 w-[80vw] flex flex-wrap justify-center gap-[30px]'>
+                    {wikiCard.map((listdata, index) => (
+                        <div
+                            key={index}
+                        >
+                            <WikiCardList listCard={listdata}/>
+                        </div>
+                    ))}
+                </div>
             }
         </div>
     );

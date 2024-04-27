@@ -7,19 +7,19 @@ const cardData = [
     title: "Farel Winalda",
     nim: "13522047",
     // nama: "Farel Winalda",
-    image: "/img/tes.png",
+    image: "/img/farel.jpg",
   },
   {
     title: "Enrique Yanuar",
     nim: "13522077",
     // nama: "Enrique Yanuar",
-    image: "/img/tes.png",
+    image: "/img/enrique.jpg",
   },
   {
     title: "William Glory Henderson",
     nim: "13522113",
     // nama: "William Glory Henderson",
-    image: "/img/tes.png",
+    image: "/img/wg.jpg",
   },
 ];
 
